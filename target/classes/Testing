@@ -1,0 +1,32 @@
+protected void constructObject() {
+		if(dishName.getText().trim().isEmpty() ||
+    			dishPrice.getText().trim().isEmpty() ||
+    			restockThreshold.getSelectionModel().isEmpty() ||
+    			restockAmount.getSelectionModel().isEmpty()) {
+    				popUp("Incompleted Field: make sure all Fields are complete");
+    			} else {
+    				try {
+    					String name = dishName.getText();
+    					String description = dishName.getText();
+    					Number price = Float.parseFloat(dishPrice.getText());
+    					Number restockThreshold = this.restockThreshold.getSelectionModel().getSelectedItem();
+    					Number restockAmount = this.restockAmount.getSelectionModel().getSelectedItem();
+    					Dish newDish = new Dish(name,description,price,restockThreshold,restockAmount);
+    				
+    					HashMap<Ingredient,Number> newRecipe = new HashMap<Ingredient,Number>();;
+    					for(Recipe currentRecipe : dishRecipe) {
+    						newRecipe.put(currentRecipe.getIngredient(), currentRecipe.getQuantity());
+    					}
+    				
+    					newDish.setRecipe(newRecipe);
+    					modelViewLists.add(newDish);
+    					getServer().addDish(name,description,price,restockThreshold,restockAmount);
+    					System.out.println("Dish Recipe: " + newDish.getRecipe().keySet().toString() + newDish.getRecipe().values().toString() );
+    					System.out.println("New Recipe: " + newRecipe.keySet().toString() + newRecipe.values().toString());
+    				 } catch(NumberFormatException e) {
+    					 popUp("Price Must be a Number");
+    				 }
+    			}
+    				 
+    		
+    }
