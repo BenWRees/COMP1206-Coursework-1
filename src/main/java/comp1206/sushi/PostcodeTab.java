@@ -135,7 +135,7 @@ public class PostcodeTab extends ServerApplication {
 			    	}
 			    	if(postcodesInSupplier.contains(objectSelected)) {
 			    		popUp("Cannot delete a Postcode being used by a Supplier");
-			    		System.out.println("THIS SHOULD BE WORKING");
+			    		//System.out.println("THIS SHOULD BE WORKING");
 			    	} else {
                 			removeObject();
 			    	}
@@ -301,18 +301,8 @@ public class PostcodeTab extends ServerApplication {
     }
   //need to prevent removal of a postcode if the postcode is being used by a supplier 
     protected void removeObject() throws UnableToDeleteException  {
-    	/*
-    	ArrayList<Postcode> postcodesInSupplier = new ArrayList<Postcode>();
-    	for(Supplier suppliersInServer : getServer().getSuppliers()) {
-    		postcodesInSupplier.add(suppliersInServer.getPostcode());
-    	}
-    	if(postcodesInSupplier.contains(viewPanel.getSelectionModel().getSelectedItem())) {
-    		popUp("Cannot delete a Postcode being used by a Supplier");
-    	} else {
-    	*/
     		Postcode postcodeToRemove = viewPanel.getSelectionModel().getSelectedItem();
     		getPostcodesList().remove(postcodeToRemove);
-    		//getPostcodeList().remove(postcodeToRemove);
     		int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
     		if(actualIndex == 1) {
     			actualIndex = 0;

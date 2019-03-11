@@ -1,6 +1,9 @@
 package comp1206.sushi;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.swing.text.html.HTMLDocument.Iterator;
 
@@ -169,27 +172,32 @@ public class IngredientsTab extends ServerApplication {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                	ArrayList<String> ingredientsInDish = new ArrayList<String>();
+                	/*
+                	 * populate an arrayList with all the ingredients in all the dishes
+                	 */
+                	ArrayList<Ingredient> ingredientsInDish = new ArrayList<Ingredient>();
+                	ArrayList<String> ingredientsInDishString = new ArrayList<String>();
+                	
+                	//iterating through all the dishes in the server
                 	for(Dish dishesInServer : getServer().getDishes()) {
-                		//loop to populate an array list of all the ingredients in a dish
-                		ArrayList<String> ingredientsInADish = new ArrayList<String>();
-                		for(Object ingredientInADish : dishesInServer.getRecipe().keySet().toArray()) {
-                			ingredientsInADish.add((String) ingredientInADish);
-                		}
-                		ingredientsInDish.addAll(ingredientsInADish);
+                		ingredientsInDish.addAll(dishesInServer.getRecipe().keySet());
+                		
                 	}
-            		if(ingredientsInDish.contains(viewPanel.getSelectionModel().getSelectedItem().toString())) {
-            			popUp("Ingredient is being used by a Dish");
+                	for(Ingredient ingredientInIngredientsInDish : ingredientsInDish) {
+                		ingredientsInDishString.add(ingredientInIngredientsInDish.getName());
+                	}
+            		if(ingredientsInDishString.contains(viewPanel.getSelectionModel().getSelectedItem().toString())) {
+            			popUp("Cannot Delete an Ingredient being used by a Dish");
             		} else {
                 	//need to work out how to remove selected object
                 	removeObject();
             		}
-					System.out.println("Server: " + getServer().getIngredients()); //DEBUG
-					System.out.println("ViewPanel: " + getIngredientsList()); 
 					//need to update ListView every time button is pressed
-				} catch (Exception e) {
+				} 
+                catch (Exception e) {
 					 //TODO Auto-generated catch block
-						popUp("Must Select an Object");
+						
+					popUp("Must Select an Object");
 				}
             }
         };
@@ -388,11 +396,10 @@ public class IngredientsTab extends ServerApplication {
     		Ingredient actualIngredientToRemove = getServer().getIngredients().get(actualIndex);
     		if(viewPanel.getSelectionModel().isEmpty()== false) {
     			getServer().removeIngredient(actualIngredientToRemove);
-			
     		}
-		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
-			popUp("No Object Selected: Please Select an Object");
-		}
+    		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
+    			popUp("No Object Selected: Please Select an Object");
+    		}
     }
     
     protected void moveUp() {
