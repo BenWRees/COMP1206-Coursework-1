@@ -169,8 +169,21 @@ public class IngredientsTab extends ServerApplication {
             @Override
             public void handle(ActionEvent event) {
                 try {
+                	ArrayList<String> ingredientsInDish = new ArrayList<String>();
+                	for(Dish dishesInServer : getServer().getDishes()) {
+                		//loop to populate an array list of all the ingredients in a dish
+                		ArrayList<String> ingredientsInADish = new ArrayList<String>();
+                		for(Object ingredientInADish : dishesInServer.getRecipe().keySet().toArray()) {
+                			ingredientsInADish.add((String) ingredientInADish);
+                		}
+                		ingredientsInDish.addAll(ingredientsInADish);
+                	}
+            		if(ingredientsInDish.contains(viewPanel.getSelectionModel().getSelectedItem().toString())) {
+            			popUp("Ingredient is being used by a Dish");
+            		} else {
                 	//need to work out how to remove selected object
                 	removeObject();
+            		}
 					System.out.println("Server: " + getServer().getIngredients()); //DEBUG
 					System.out.println("ViewPanel: " + getIngredientsList()); 
 					//need to update ListView every time button is pressed
@@ -366,13 +379,6 @@ public class IngredientsTab extends ServerApplication {
     //having same issue with server and view panel, discrepancies in what is being removed
     //Should prevent ingredients being removed if they exist in a dish 
     protected void removeObject() throws UnableToDeleteException {
-    	ArrayList<Ingredient> ingredientsInDish = new ArrayList<Ingredient>();
-    	for(Dish dishesInServer : getServer().getDishes()) {
-    		ingredientsInDish.addAll(dishesInServer.getRecipe().keySet());
-    	}
-		if(ingredientsInDish.contains(viewPanel.getSelectionModel().getSelectedItem())) {
-			popUp("Ingredient is being used by a Dish");
-		} else {
     		Ingredient ingredientToRemove = viewPanel.getSelectionModel().getSelectedItem();
     		getIngredientsList().remove(ingredientToRemove);
     		int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
@@ -384,7 +390,6 @@ public class IngredientsTab extends ServerApplication {
     			getServer().removeIngredient(actualIngredientToRemove);
 			
     		}
-		}
 		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
 			popUp("No Object Selected: Please Select an Object");
 		}

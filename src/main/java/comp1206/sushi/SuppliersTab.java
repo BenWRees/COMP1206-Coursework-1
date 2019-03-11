@@ -141,12 +141,12 @@ public class SuppliersTab extends ServerApplication {
             public void handle(ActionEvent event) {
                 try {
                 	//need to work out how to remove selected object
-                	ArrayList<Supplier> suppliersInIngredient = new ArrayList<Supplier>();
+                	ArrayList<String> suppliersInIngredient = new ArrayList<String>();
                 	for(Ingredient ingredientsInServer : getServer().getIngredients()) {
-                		suppliersInIngredient.add(ingredientsInServer.getSupplier());
+                		suppliersInIngredient.add(ingredientsInServer.getSupplier().toString());
                 	}
                 	
-                	if(suppliersInIngredient.contains(viewPanel.getSelectionModel().getSelectedItem())) {
+                	if(suppliersInIngredient.contains(viewPanel.getSelectionModel().getSelectedItem().toString())) {
                 		popUp("Cannot delete a Supplier being used by a Ingredient");
                 	} else {
                 		removeObject();

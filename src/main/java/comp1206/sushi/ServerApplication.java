@@ -97,6 +97,7 @@ public class ServerApplication extends Application{
         
     	//CALL UPDATE ON ALL THE ComboBoxs
         serverWindow.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        	//switch (serverWindow.getSelectionModel().getSelectedItem())
             @Override
             public void handle(MouseEvent event) {;
             if(serverWindow.getSelectionModel().getSelectedItem() == postcodesTab.getTab()) {
