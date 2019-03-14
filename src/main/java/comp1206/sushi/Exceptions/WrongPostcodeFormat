@@ -1,0 +1,8 @@
+/*
+* Exception class that should be thrown by PostcodeTab class when a Postcode
+* that doesn't follow the format LETTER,
+*/
+
+public class WrongPostcodeFormat extends Exception {
+
+}

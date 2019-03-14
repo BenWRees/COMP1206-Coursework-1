@@ -23,6 +23,7 @@ public class Postcode extends Model {
 	private String name;
 	private Map<String,Double> latLong;
 	private Number distance;
+	private static final Double EarthRadius = 6371e3; //metres
 
 	public Postcode(String code) {
 		this.name = code;
@@ -53,57 +54,57 @@ public class Postcode extends Model {
 		return this.latLong;
 	}
 
+	/*
+	 * https://www.movable-type.co.uk/scripts/latlong.html
+	 */
 	protected void calculateDistance(Restaurant restaurant) {
-		//This function needs implementing
-		Postcode destination = restaurant.getLocation();
-		this.distance = Integer.valueOf(0);
+		Map<String,Double> restaurantLatLong = new HashMap<String, Double>();
+		parseURL(restaurant.getLocation().getName(), restaurantLatLong);
+		
+		Double restaurantLat = Math.toRadians(restaurantLatLong.get("lat"));
+		Double postcodeLat = Math.toRadians(latLong.get("lat"));
+		Double changeInLat = Math.toRadians(latLong.get("lat")-restaurantLatLong.get("lat"));
+		Double changeInLon = Math.toRadians(latLong.get("lon")-restaurantLatLong.get("lon"));
+		
+		Double a = (Math.sin(changeInLat/2)*Math.sin(changeInLat/2)) + 
+				((Math.cos(restaurantLat)*Math.cos(restaurantLat))*(Math.sin(changeInLon/2)*Math.sin(changeInLon/2)));
+		Double c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+		distance = EarthRadius*c;
+				
 	}
 
 	protected void calculateLatLong() {
-		//This function needs implementing
-		/*
-		URL theURL = new URL("https://www.southampton.ac.uk/~ob1a12/postcode/postcode.php?postcode="+this.name);
-	  	HttpURLConnection con = (HttpURLConnection) theURL.openConnection();
-	  	con.setRequestMethod("GET");
-	  	InputStream iStream = theURL.openStream();
-  		JsonReader read = Json.createReader(iStream);
-    	JsonObject latLong = read.readObject();
-		 */	
-		
-		this.latLong = new HashMap<String,Double>();
-		latLong.put("lat", 0d);
-		latLong.put("lon", 0d);
-		/*
-		JSONObject json = readJsonFromUrl();
-		Double latitude = latLong.get("lat");
-		latLong.put("lat", (Double) json.get("lat"));
-		latLong.put("lon", (Double) json.get("lon"));
-		Map<String, Object> latLongMap = json.toMap();
-		System.out.println(latLongMap.toString());
-		*/
+		try {
+			
+	        latLong = new HashMap<String,Double>();
+			parseURL(name, latLong);
+			
+	    	} catch(Exception e) {
+	    		e.getStackTrace();
+	    	}
 		this.distance = new Integer(0);
 	}
-	/*
-	public JSONObject readJsonFromUrl() throws IOException {
-		InputStream is = new URL("https://www.southampton.ac.uk/~ob1a12/postcode/postcode.php?postcode="+this.name).openStream();
-		try {
-			BufferedReader rd = new BufferedReader(new InputStreamReader(is,Charset.forName("UTF-8")));
-			String  jsonText = readAll(rd);
-			JSONObject json = new JSONObject(jsonText);
-			return json;
-		} finally {
-			is.close();
-		}
-	}
 	
-	private String readAll(Reader rd) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		int cp;
-		while((cp =  rd.read()) != -1) {
-			sb.append((char) cp);
+	/*
+	 * https://docs.oracle.com/javase/tutorial/networking/urls/readingURL.html
+	 */
+	protected void parseURL(String name, Map<String,Double> latLong)  {
+		try {
+		StringBuilder address = new StringBuilder("https://www.southampton.ac.uk/~ob1a12/postcode/postcode.php?postcode=");
+        String newName = name.replaceAll("\\s+","");
+        address.append(newName);
+        URL postcodeURL = new URL(address.toString());
+        BufferedReader in = new BufferedReader(new InputStreamReader(postcodeURL.openStream()));
+        String inputLine = in.readLine();
+        String[] stringArray = inputLine.split(":|,|}");
+        String latString = stringArray[3].replaceAll("\"","");
+		String lonString = stringArray[5].replaceAll("\"","");
+        latLong.put("lat", Double.parseDouble(latString));
+		latLong.put("lon", Double.parseDouble(lonString));
+		} catch(Exception e) {
+			e.getStackTrace();
 		}
-		return sb.toString();
 	}
-	*/
+
 
 }

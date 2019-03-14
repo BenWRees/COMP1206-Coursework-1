@@ -2,6 +2,7 @@ package comp1206.sushi;
 
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -49,7 +50,7 @@ public class PostcodeTab extends ServerApplication {
         postcodesTab.setText("Postcodes");
         postcodesTab.setContent(postcodeTab());
 	}
-	
+
 	public void postcodesTabContent() {
 		postcodesTab.setContent(postcodeTab());
 	}
@@ -73,28 +74,28 @@ public class PostcodeTab extends ServerApplication {
         fieldsBox.add(postcodeEntryPrompt,0,0);
         fieldsBox.add(postcodeEntry,0,1);
         entryBox.setTop(fieldsBox);
-        
+
         //instantiatePostcodeList();
 
         mainPostcodePanel.setBottom(entryBox);
         mainPostcodePanel.setCenter(viewPanel);
         return mainPostcodePanel;
-    }  
-    
+    }
+
     public Tab getTab() {
     	return postcodesTab;
     }
-    
+
     protected BorderPane viewPanel() {
         BorderPane topPanel = new BorderPane();
         viewPanel = new ListView<Postcode>();
         viewPanel.setOrientation(Orientation.VERTICAL);
         viewPanel.setPadding(new Insets(10,5,5,15));
-        
+
         extraInfoPanel = new VBox(7);
         extraInfoPanel.setPadding(new Insets(10,5,7,15));
-        
-        
+
+
         HBox controlPanel = new HBox(7);
         controlPanel.setPadding(new Insets(10,0,10,15));
         add = new Button("Add");
@@ -102,7 +103,7 @@ public class PostcodeTab extends ServerApplication {
         moveUp = new Button("Move Up");
         moveDown = new Button("Move Down");
         controlPanel.getChildren().addAll(add,remove,moveUp,moveDown);
-        
+
         /*
          * add button action event
          */
@@ -117,9 +118,9 @@ public class PostcodeTab extends ServerApplication {
     				} catch (Exception e) {
     				}
                 }
-            }; 
+            };
         add.setOnAction(addButton);
-        
+
         /*
          * remove button action event
          */
@@ -141,7 +142,7 @@ public class PostcodeTab extends ServerApplication {
 			    	}
 			    	System.out.println(postcodesInSupplier.contains(objectSelected));
 			    	System.out.println(postcodesInSupplier.toString());
-			    	
+
 			    	/*
 			    	 * newly created objects being referenced in this scope!!
 			    	 * why isn't it being checked properly then??
@@ -154,7 +155,7 @@ public class PostcodeTab extends ServerApplication {
             }
         };
         remove.setOnAction(removeButton);
-        
+
         /*
          * move up button action event
          */
@@ -165,7 +166,7 @@ public class PostcodeTab extends ServerApplication {
                 	//need to work out how to remove selected object
                 	moveUp();
 					System.out.println("Server: " + getServer().getPostcodes()); //DEBUG
-					System.out.println("ViewPanel: " + getPostcodesList()); 
+					System.out.println("ViewPanel: " + getPostcodesList());
 					//need to update ListView every time button is pressed
 				} catch (Exception e) {
 					if(viewPanel.getSelectionModel().isEmpty()) {
@@ -176,7 +177,7 @@ public class PostcodeTab extends ServerApplication {
             }
         };
         moveUp.setOnAction(moveUpButton);
-        
+
         /*
          * move down button action event
          */
@@ -187,7 +188,7 @@ public class PostcodeTab extends ServerApplication {
                 	//need to work out how to remove selected object
                 	moveDown();
 					System.out.println("Server: " + getServer().getPostcodes()); //DEBUG
-					System.out.println("ViewPanel: " + getPostcodesList()); 
+					System.out.println("ViewPanel: " + getPostcodesList());
 					//need to update ListView every time button is pressed
 				} catch (Exception e) {
 					if(viewPanel.getSelectionModel().isEmpty()) {
@@ -198,7 +199,7 @@ public class PostcodeTab extends ServerApplication {
             }
         };
         moveDown.setOnAction(moveDownButton);
-        
+
         /*
          * extra info panel button action event
          */
@@ -207,21 +208,30 @@ public class PostcodeTab extends ServerApplication {
             @Override
             public void handle(MouseEvent event) {
             	updateUI(extraInfoPanel);
-                populateExtraInfoPanel();
+                try {
+                	//System.out.println(viewPanel.getSelectionModel().getSelectedItem().getLatLong().values().toString());
+					populateExtraInfoPanel();
+				} catch (UnsupportedOperationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
-        
+
 
         viewPanel.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         extraInfoPanel.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         controlPanel.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
         extraInfoPanel.setPrefSize(400,300);
-        
-        //setPostcodesList(FXCollections.observableArrayList(getServer().getPostcodes()));        
+
+        //setPostcodesList(FXCollections.observableArrayList(getServer().getPostcodes()));
         viewPanel.setItems(getPostcodesList());
-        
+
         topPanel.setPrefSize(300, 200);
-        
+
         //extraInfoPanel = extraInfoPanel();
 
         topPanel.setCenter(viewPanel);
@@ -230,35 +240,43 @@ public class PostcodeTab extends ServerApplication {
 
         return topPanel;
     }
-    
-    private VBox populateExtraInfoPanel() {
+
+    private VBox populateExtraInfoPanel() throws UnsupportedOperationException, Exception {
     	while(viewPanel.getSelectionModel().getSelectedItem() != null) {
     		GridPane extraInfoDesign = new GridPane();
     		extraInfoDesign.setVgap(7);
     		extraInfoDesign.setHgap(7);
-    		
+
     		Button editButton = new Button("Edit");
-    		
+
     		Postcode postcodeObserved = viewPanel.getSelectionModel().getSelectedItem();
 
     		TextField name = new TextField(viewPanel.getSelectionModel().getSelectedItem().getName());
-    		
+
     		//Object[] latAndLong = viewPanel.getSelectionModel().getSelectedItem().getLatLong().values().toArray();
+
+    		Double distance = viewPanel.getSelectionModel().getSelectedItem().getDistance().doubleValue();
     		
-    		String distance = viewPanel.getSelectionModel().getSelectedItem().getDistance().toString();
+    		//Iterator latLongIt = postcodeObserved.getLatLong().values().iterator();
+    		//ArrayList<String> latLongArray = new ArrayList<String>();
+    		//while(latLongIt.hasNext()) {
+    		//	latLongArray.add(latLongIt.next().toString());
+    		//}
+    		
+    		DecimalFormat df = new DecimalFormat("#.#####");
     		
     		Label postcodeName = new Label("Name: ");
-    		//Label latLabel = new Label("Postcode Latitude: " + postcodeObserved.getLatLong().keySet().toString());
-    		//Label longLabel = new Label("Postcode Longitude: " + postcodeObserved.getLatLong().values().toString());
-    		Label postcodeDistance = new Label("Distance: " + distance);
-    		
+    		Label latLabel = new Label("Postcode Latitude: " + df.format(postcodeObserved.getLatLong().get("lat")));
+    		Label longLabel = new Label("Postcode Longitude: " + df.format(postcodeObserved.getLatLong().get("lon")));
+    		Label postcodeDistance = new Label("Distance: " + df.format(distance)+ " Metres");
+
     		extraInfoDesign.add(postcodeName, 0, 1);
     		extraInfoDesign.add(name, 1, 1);
-    		//extraInfoDesign.add(latLabel, 0, 2);
-    		//extraInfoDesign.add(longLabel, 0, 3);
+    		extraInfoDesign.add(latLabel, 0, 2);
+    		extraInfoDesign.add(longLabel, 0, 3);
     		extraInfoDesign.add(postcodeDistance, 0, 5);
     		extraInfoDesign.add(editButton, 0, 6);
-    		
+
     		/*
              * edit button action event
              */
@@ -278,28 +296,40 @@ public class PostcodeTab extends ServerApplication {
                 }
             };
             editButton.setOnAction(editButtonAction);
-    		
 
-    		
+
+
     		extraInfoPanel.getChildren().add(extraInfoDesign);
     		return extraInfoPanel;
     	}
     	return extraInfoPanel;
     }
-    
+
+		/*
+		* need to deconstruct 'postcodeEntry' into an array and check if each
+		* elemnt of the array follows the ordering:
+		* LETTER, LETTER, NUMBER, SPACE, NUMBER, LETTER, LETTER
+		*/
     protected void constructObject() {
-    	if(postcodeEntry.getText().trim().isEmpty()) {
-			popUp("Incompleted Field: make sure all Fields are complete");
-		} else {
+			ArrayList<String> postcodes = new ArrayList<String>();
+			for(Postcode postcodeName : getServer().getPostcodes()) {
+				postcodes.add(postcodeName.getName());
+			}
+			Object[] postcodeArray = postcodeEntry.getText().split("");
+			if(postcodeEntry.getText().trim().isEmpty()) {
+				popUp("Incompleted Field: make sure all Fields are complete");
+			}
+			if(postcodes.contains(postcodeEntry.getText())) {
+				popUp("Cannot Add Duplicate Postcodes");
+			} else {
     		String code = postcodeEntry.getText();
-    		Postcode newPostcode = new Postcode(code);
+    		Postcode newPostcode = new Postcode(code,getServer().getRestaurant());
     		getPostcodesList().add(newPostcode);
     		getServer().addPostcode(code);
     		//getPostcodesInSupplier().add(newPostcode);
-	    	
-		} 
+	    	}
     }
-  //need to prevent removal of a postcode if the postcode is being used by a supplier 
+  //need to prevent removal of a postcode if the postcode is being used by a supplier
     protected void removeObject() throws UnableToDeleteException  {
     		Postcode postcodeToRemove = viewPanel.getSelectionModel().getSelectedItem();
     		getPostcodesList().remove(postcodeToRemove);
@@ -314,19 +344,19 @@ public class PostcodeTab extends ServerApplication {
     		if(viewPanel.getSelectionModel().isEmpty()) {
     			popUp("No Object Selected: Please Select an Object");
     		}
-    	//} 
-    } 
-    
+    	//}
+    }
+
     protected void moveUp() {
     	Postcode postcodeToMove = viewPanel.getSelectionModel().getSelectedItem();
     	int postcodeIndexToMove = viewPanel.getSelectionModel().getSelectedIndex();
-    	
+
     	if(postcodeIndexToMove == 0) {
         	getPostcodesList().remove(postcodeIndexToMove);
         	getPostcodesList().add(postcodeToMove);
         	getServer().getPostcodes().remove(postcodeIndexToMove);
         	getServer().getPostcodes().add(postcodeToMove);
-    	} 
+    	}
     	else {
         	getPostcodesList().remove(postcodeIndexToMove);
         	getPostcodesList().add(postcodeIndexToMove-1, postcodeToMove);
@@ -334,17 +364,17 @@ public class PostcodeTab extends ServerApplication {
         	getServer().getPostcodes().add(postcodeIndexToMove-1, postcodeToMove);
     	}
     }
-    
+
     protected void moveDown() {
     	Postcode postcodeToMove = viewPanel.getSelectionModel().getSelectedItem();
     	int postcodeIndexToMove = viewPanel.getSelectionModel().getSelectedIndex();
-    	
+
     	if(postcodeIndexToMove == getPostcodesList().size()-1) {
     		getPostcodesList().remove(postcodeIndexToMove);
     		getPostcodesList().add(0,postcodeToMove);
         	getServer().getPostcodes().remove(postcodeIndexToMove);
         	getServer().getPostcodes().add(0,postcodeToMove);
-    	
+
     	} else {
     		getPostcodesList().remove(postcodeIndexToMove);
     		getPostcodesList().add(postcodeIndexToMove+1, postcodeToMove);
@@ -352,8 +382,8 @@ public class PostcodeTab extends ServerApplication {
         	getServer().getPostcodes().add(postcodeIndexToMove+1, postcodeToMove);
     	}
     }
-    
 
-    
+
+
 
 }

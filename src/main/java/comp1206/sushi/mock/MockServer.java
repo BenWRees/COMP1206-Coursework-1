@@ -267,7 +267,7 @@ public class MockServer implements ServerInterface {
 
 	@Override
 	public Postcode addPostcode(String code) {
-		Postcode mock = new Postcode(code);
+		Postcode mock = new Postcode(code, restaurant);
 		this.postcodes.add(mock);
 		this.notifyUpdate();
 		return mock;
@@ -405,6 +405,10 @@ public class MockServer implements ServerInterface {
 	@Override
 	public Postcode getRestaurantPostcode() {
 		return restaurant.getLocation();
+	}
+	
+	public Restaurant getRestaurant() {
+		return restaurant;
 	}
 
 
