@@ -517,6 +517,12 @@ public class DishesTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
+                		ArrayList<String> dishes = new ArrayList<String>();
+                		for(Dish dishName : getServer().getDishes()) {
+                			String nameToEnter = dishName.getName().replaceAll("\\s+", "");
+                			nameToEnter.toUpperCase();
+                			dishes.add(nameToEnter);
+                		}
                     	if(dishName.getText() == null) {
                     		dishName.setText(viewPanel.getSelectionModel().getSelectedItem().getName());
                     	}
@@ -532,6 +538,9 @@ public class DishesTab extends ServerApplication {
                     	if(dishRestockAmount.getSelectionModel().isEmpty()) {
                     		dishRestockAmount.getSelectionModel().select(viewPanel.getSelectionModel().getSelectedItem().getRestockAmount());
                     	}
+                    	if(dishes.contains(dishName.getText())) {
+                			popUp("Cannot Add Duplicate Dishes");
+                		}
                     
                     	try {
                     	 dishObserved.setName(dishName.getText());
@@ -573,24 +582,33 @@ public class DishesTab extends ServerApplication {
      * need to optimise construction of the recipeList in the object so it doesn't crash
      */
     protected void constructObject() {
+		ArrayList<String> dishes = new ArrayList<String>();
+		for(Dish dishName : getServer().getDishes()) {
+			String nameToEnter = dishName.getName().replaceAll("\\s+", "");
+			nameToEnter.toUpperCase();
+			dishes.add(nameToEnter);
+		}
 		if(dishName.getText().trim().isEmpty() ||
     			dishPrice.getText().trim().isEmpty() ||
     			restockThreshold.getSelectionModel().isEmpty() ||
     			restockAmount.getSelectionModel().isEmpty()) {
     				popUp("Incompleted Field: make sure all Fields are complete");
-    			} else {
-    				try {
-    					String name = dishName.getText();
-    					String description = dishName.getText();
-    					Number price = Integer.parseInt(dishPrice.getText());
-    					Number restockThreshold = this.restockThreshold.getSelectionModel().getSelectedItem();
-    					Number restockAmount = this.restockAmount.getSelectionModel().getSelectedItem();
-    					Dish newDish = new Dish(name,description,price,restockThreshold,restockAmount);
+    			} 
+		if(dishes.contains(dishName.getText())) {
+			popUp("Cannot Add Duplicate Dishes");
+		} else {
+    			try {
+    				String name = dishName.getText();
+    				String description = dishName.getText();
+    				Number price = Integer.parseInt(dishPrice.getText());
+    				Number restockThreshold = this.restockThreshold.getSelectionModel().getSelectedItem();
+    				Number restockAmount = this.restockAmount.getSelectionModel().getSelectedItem();
+    				Dish newDish = new Dish(name,description,price,restockThreshold,restockAmount);
     				
-    					HashMap<Ingredient,Number> newRecipe = new HashMap<Ingredient,Number>();;
-    					for(Recipe currentRecipe : dishRecipe) {
-    						newRecipe.put(currentRecipe.getIngredient(), currentRecipe.getQuantity());
-    					}
+    				HashMap<Ingredient,Number> newRecipe = new HashMap<Ingredient,Number>();;
+    				for(Recipe currentRecipe : dishRecipe) {
+    					newRecipe.put(currentRecipe.getIngredient(), currentRecipe.getQuantity());
+    				}
     				
     					newDish.setRecipe(newRecipe);
     					getDishesList().add(newDish);

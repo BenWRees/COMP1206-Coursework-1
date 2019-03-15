@@ -17,12 +17,22 @@ import javax.json.*;
 import org.json.*;
 
 import comp1206.sushi.common.Postcode;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
 
 public class Postcode extends Model {
 
 	private String name;
 	private Map<String,Double> latLong;
 	private Number distance;
+	private URL postcodeURL;
 	private static final Double EarthRadius = 6371e3; //metres
 
 	public Postcode(String code) {
@@ -93,7 +103,7 @@ public class Postcode extends Model {
 		StringBuilder address = new StringBuilder("https://www.southampton.ac.uk/~ob1a12/postcode/postcode.php?postcode=");
         String newName = name.replaceAll("\\s+","");
         address.append(newName);
-        URL postcodeURL = new URL(address.toString());
+        postcodeURL = new URL(address.toString());
         BufferedReader in = new BufferedReader(new InputStreamReader(postcodeURL.openStream()));
         String inputLine = in.readLine();
         String[] stringArray = inputLine.split(":|,|}");
@@ -105,6 +115,11 @@ public class Postcode extends Model {
 			e.getStackTrace();
 		}
 	}
+	
+	public URL getURL() {
+		return postcodeURL;
+	}
+	
 
 
 }

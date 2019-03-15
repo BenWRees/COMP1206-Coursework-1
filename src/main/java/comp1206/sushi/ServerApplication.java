@@ -138,14 +138,19 @@ public class ServerApplication extends Application{
             	usersTab.usersTabContent();
 
             }
+            /*
+            if(serverWindow.getSelectionModel().getSelectedItem() == mapTab.getTab()) {
+            	mapTab.mapTabContent();
 
+            }
+			*/
             }
         });
         
         
         
         serverWindow.getSelectionModel().select(0);
-        serverWindow.getTabs().addAll(postcodes, staff, drone, supplier, ingredient, dish, order, user,map);
+        serverWindow.getTabs().addAll(postcodes, staff, drone, supplier, ingredient, dish, order, user, map);
 
         root.getChildren().add(serverWindow);
 

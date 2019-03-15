@@ -1,0 +1,4 @@
+#ignore jar files as well as class files and xml files
+*.jar
+*.class
+*.xml

@@ -2,6 +2,9 @@ package comp1206.sushi;
 
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -111,13 +114,15 @@ public class PostcodeTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event){
                     try {
+                    	// else {
     					constructObject();
     			    	postcodeEntry.setText("");
     			    	System.out.println("Server: " + getServer().getPostcodes());
     					System.out.println("ViewPanel: " + getPostcodesList()); //DEBUG
+        			//}
     				} catch (Exception e) {
     				}
-                }
+               }
             };
         add.setOnAction(addButton);
 
@@ -284,14 +289,26 @@ public class PostcodeTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
+            			ArrayList<String> postcodes = new ArrayList<String>();
+            			for(Postcode postcodeName : getServer().getPostcodes()) {
+            				String nameToEnter = postcodeName.getName().replaceAll("\\s+", "");
+            				nameToEnter.toUpperCase();
+            				postcodes.add(nameToEnter);
+            			}
+            			if(postcodes.contains(name.getText())) {
+            				popUp("Cannot Change name to a pre-Existing Postcodes");
+            			} else {
                     	 postcodeObserved.setName(name.getText());
+            			}
                     	 //getPostcodeList().remove(postcodeObserved);
     					//need to update ListView every time button is pressed
     				} catch (Exception e) {
     					if(viewPanel.getSelectionModel().isEmpty()) {
     					 //TODO Auto-generated catch block
     						popUp("Must Select an Object");
+    						popUp("Cannot connect to Server: Please enter a proper Postcode");
     					}
+    					
     				}
                 }
             };
@@ -311,11 +328,15 @@ public class PostcodeTab extends ServerApplication {
 		* LETTER, LETTER, NUMBER, SPACE, NUMBER, LETTER, LETTER
 		*/
     protected void constructObject() {
+    	try {
 			ArrayList<String> postcodes = new ArrayList<String>();
 			for(Postcode postcodeName : getServer().getPostcodes()) {
-				postcodes.add(postcodeName.getName());
+				String nameToEnter = postcodeName.getName().replaceAll("\\s+", "");
+				nameToEnter.toUpperCase();
+				postcodes.add(nameToEnter);
 			}
-			Object[] postcodeArray = postcodeEntry.getText().split("");
+			//ArrayList<String>
+			//Object[] postcodeArray = postcodeEntry.getText().split("");
 			if(postcodeEntry.getText().trim().isEmpty()) {
 				popUp("Incompleted Field: make sure all Fields are complete");
 			}
@@ -326,8 +347,10 @@ public class PostcodeTab extends ServerApplication {
     		Postcode newPostcode = new Postcode(code,getServer().getRestaurant());
     		getPostcodesList().add(newPostcode);
     		getServer().addPostcode(code);
-    		//getPostcodesInSupplier().add(newPostcode);
-	    	}
+	    	} 
+    	} catch(Exception e) {
+    		popUp("Cannot connect to Server: Please enter a proper Postcode");
+    	}
     }
   //need to prevent removal of a postcode if the postcode is being used by a supplier
     protected void removeObject() throws UnableToDeleteException  {
@@ -381,6 +404,23 @@ public class PostcodeTab extends ServerApplication {
         	getServer().getPostcodes().remove(postcodeIndexToMove);
         	getServer().getPostcodes().add(postcodeIndexToMove+1, postcodeToMove);
     	}
+    }
+    
+    public boolean serverConnectionCheck() {
+    	try {
+    	StringBuilder address = new StringBuilder("https://www.southampton.ac.uk/~ob1a12/postcode/postcode.php?postcode=");
+        String newName = postcodeEntry.getText().replaceAll("\\s+","");
+        address.append(newName);
+        URL postcodeURL = new URL(address.toString());
+        HttpURLConnection conn = (HttpURLConnection) postcodeURL.openConnection();
+        if(conn.getResponseCode() == 200) {
+        	return false;
+        }
+        return true;
+    	}catch(Exception e) {
+    		e.getStackTrace();
+    	}
+    	return true;
     }
 
 

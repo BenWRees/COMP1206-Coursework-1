@@ -324,6 +324,12 @@ public class IngredientsTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
+                		ArrayList<String> ingredients = new ArrayList<String>();
+                		for(Ingredient ingredientName : getServer().getIngredients()) {
+                			String nameToEnter = ingredientName.getName().replaceAll("\\s+", "");
+                			nameToEnter.toUpperCase();
+                			ingredients.add(nameToEnter);
+                		}
                     	if(ingredientName.getText() == null) {
                     		ingredientName.setText(viewPanel.getSelectionModel().getSelectedItem().getName());
                     	}
@@ -339,6 +345,9 @@ public class IngredientsTab extends ServerApplication {
                     	if(ingredientRestockAmount.getSelectionModel().isEmpty()) {
                     		ingredientRestockAmount.getSelectionModel().select(viewPanel.getSelectionModel().getSelectedItem().getRestockAmount());
                     	}
+                    	if(ingredients.contains(ingredientName.getText())) {
+                			popUp("Cannot add Duplicate Ingredients");
+                		}
                     	 ingredientObserved.setName(ingredientName.getText());
                     	 ingredientObserved.setUnit(ingredientUnit.getText());
                     	 ingredientObserved.setSupplier(ingredientSupplier.getSelectionModel().getSelectedItem());
@@ -366,13 +375,22 @@ public class IngredientsTab extends ServerApplication {
 
     
     protected void constructObject() {
+		ArrayList<String> ingredients = new ArrayList<String>();
+		for(Ingredient ingredientName : getServer().getIngredients()) {
+			String nameToEnter = ingredientName.getName().replaceAll("\\s+", "");
+			nameToEnter.toUpperCase();
+			ingredients.add(nameToEnter);
+		}
 		if(ingredientName.getText().trim().isEmpty() ||
     			unitOfIngredient.getText().trim().isEmpty() ||
     			ingredientSupplier.getSelectionModel().isEmpty() ||
     			ingredientRestockThreshold.getSelectionModel().isEmpty() ||
     			ingredientRestockAmount.getSelectionModel().isEmpty()) {
     				popUp("Incompleted Field: make sure all Fields are complete");
-    		} else {
+    	} 
+		if(ingredients.contains(ingredientName.getText())) {
+			popUp("Cannot add Duplicate Ingredients");
+		} else {
     			String name = ingredientName.getText();
     			String unit = unitOfIngredient.getText();
     			Supplier supplier = ingredientSupplier.getSelectionModel().getSelectedItem();
