@@ -3,8 +3,10 @@ package comp1206.sushi;
 import comp1206.sushi.ServerApplication;
 import comp1206.sushi.mock.MockServer;
 import comp1206.sushi.server.ServerInterface.UnableToDeleteException;
+import comp1206.sushi.server.ServerWindow;
 import comp1206.sushi.common.Order;
 import comp1206.sushi.common.Postcode;
+import comp1206.sushi.common.UpdateListener;
 import comp1206.sushi.common.User;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,13 +32,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class OrdersTab extends ServerApplication{
+public class OrdersTab extends ServerWindow {
 	private Tab ordersTab;
 	private ObservableList<Order> modelViewLists;
 	private ListView<Order> viewPanel;
 	private VBox extraInfoPanel;
 	
-	OrdersTab() {
+	public OrdersTab() {
         ordersTab = new Tab();
         ordersTab.setText("Orders");
         ordersTab.setContent(ordersTab());
@@ -99,6 +101,8 @@ public class OrdersTab extends ServerApplication{
                 }
             };
         add.setOnAction(addButton);
+        //getServer().addUpdateListener((UpdateListener) addButton);
+
         
         /*
          * remove button action event
@@ -119,6 +123,8 @@ public class OrdersTab extends ServerApplication{
             }
         };
         remove.setOnAction(removeButton);
+        //getServer().addUpdateListener((UpdateListener) removeButton);
+
         
         /*
          * move up button action event
@@ -141,7 +147,8 @@ public class OrdersTab extends ServerApplication{
             }
         };
         moveUp.setOnAction(moveUpButton);
-        
+        //getServer().addUpdateListener((UpdateListener) moveUpButton);
+
         /*
          * move down button action event
          */
@@ -163,6 +170,8 @@ public class OrdersTab extends ServerApplication{
             }
         };
         moveDown.setOnAction(moveDownButton);
+        //getServer().addUpdateListener((UpdateListener) moveDownButton);
+
         
         /*
          * extra info panel button action event

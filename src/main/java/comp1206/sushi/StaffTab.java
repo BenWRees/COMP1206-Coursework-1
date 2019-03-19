@@ -2,9 +2,11 @@ package comp1206.sushi;
 
 import comp1206.sushi.ServerApplication;
 import comp1206.sushi.mock.MockServer;
+import comp1206.sushi.server.ServerWindow;
 import comp1206.sushi.common.Drone;
 import comp1206.sushi.common.Postcode;
 import comp1206.sushi.common.Staff;
+import comp1206.sushi.common.UpdateListener;
 import javafx.event.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,7 +30,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class StaffTab extends ServerApplication {
+public class StaffTab extends ServerWindow {
     private Tab staffTab; 
     private Label staffNamePrompt;
     private TextField staffName;
@@ -38,10 +40,10 @@ public class StaffTab extends ServerApplication {
 
 
     
-    StaffTab() {
-        staffTab = new Tab();
-        staffTab.setText("Staff");
-        staffTab.setContent(staffTab());
+    public StaffTab() {
+       staffTab = new Tab();
+       staffTab.setText("Staff");
+       staffTab.setContent(staffTab());
     }
     
 	public void staffTabContent() {
@@ -113,6 +115,8 @@ public class StaffTab extends ServerApplication {
                 }
             };
         add.setOnAction(addButton);
+        //getServer().addUpdateListener((UpdateListener) addButton);
+
         
         /*
          * remove button action event
@@ -128,11 +132,15 @@ public class StaffTab extends ServerApplication {
 					//need to update ListView every time button is pressed
 				} catch (Exception e) {
 					 //TODO Auto-generated catch block
+					if(viewPanel.getSelectionModel().getSelectedItem() == null) {
 						popUp("Must Select an Object");
+					}
 				}
             }
         };
         remove.setOnAction(removeButton);
+        //getServer().addUpdateListener((UpdateListener) removeButton);
+
         
         /*
          * move up button action event
@@ -155,6 +163,8 @@ public class StaffTab extends ServerApplication {
             }
         };
         moveUp.setOnAction(moveUpButton);
+        //getServer().addUpdateListener((UpdateListener) moveUpButton);
+
         
         /*
          * move down button action event
@@ -177,6 +187,8 @@ public class StaffTab extends ServerApplication {
             }
         };
         moveDown.setOnAction(moveDownButton);
+        //getServer().addUpdateListener((UpdateListener) moveDownButton);
+
         
         /*
          * extra info panel button action event
@@ -187,6 +199,7 @@ public class StaffTab extends ServerApplication {
             public void handle(MouseEvent event) {
             	updateUI(extraInfoPanel);
                 populateExtraInfoPanel();
+                System.out.println(viewPanel.getSelectionModel().getSelectedItem().getName() + ": " + getServer().getStaffStatus(viewPanel.getSelectionModel().getSelectedItem()));
             }
         });
 
@@ -218,9 +231,11 @@ public class StaffTab extends ServerApplication {
     		
     		Staff staffObserved = viewPanel.getSelectionModel().getSelectedItem();
     		
-    		TextField name = new TextField(viewPanel.getSelectionModel().getSelectedItem().getName());
-    		String fatigue = viewPanel.getSelectionModel().getSelectedItem().getFatigue().toString();
-    		String status = viewPanel.getSelectionModel().getSelectedItem().getStatus();
+    		
+    		TextField name = new TextField(staffObserved.getName());
+    		String fatigue = staffObserved.getFatigue().toString();
+    		String status = getServer().getStaffStatus(staffObserved);
+    		
     		Label staffName = new Label("Name: ");
     		Label staffFatigue = new Label("Fatigue: " + fatigue);
     		Label staffStatus = new Label("Status: " + status);
@@ -239,6 +254,7 @@ public class StaffTab extends ServerApplication {
                 public void handle(ActionEvent event) {
                     try {
                     	 staffObserved.setName(name.getText());
+                    	 
     					//need to update ListView every time button is pressed
     				} catch (Exception e) {
     					if(viewPanel.getSelectionModel().isEmpty()) {
@@ -249,6 +265,8 @@ public class StaffTab extends ServerApplication {
                 }
             };
             editButton.setOnAction(editButtonAction);
+            //getServer().addUpdateListener((UpdateListener) editButtonAction);
+
 
     		
     		extraInfoPanel.getChildren().add(extraInfoDesign);
@@ -273,6 +291,7 @@ public class StaffTab extends ServerApplication {
 		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
 			popUp("No Object Selected: Please Select an Object");
 		}
+		else {
     	Staff staffMemberToRemove = viewPanel.getSelectionModel().getSelectedItem(); 
     	modelViewLists.remove(staffMemberToRemove);
     	int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
@@ -283,8 +302,6 @@ public class StaffTab extends ServerApplication {
     	if(viewPanel.getSelectionModel().isEmpty()== false) {
 			getServer().removeStaff(actualStaffMemberToRemove);
 		}
-		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
-			popUp("No Object Selected: Please Select an Object");
 		}
     }
     

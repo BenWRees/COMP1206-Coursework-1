@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import javafx.animation.*;
+import javafx.util.Duration;
 
 import javax.swing.JOptionPane;
 
@@ -320,12 +322,17 @@ public class MockServer implements ServerInterface {
 	
 	@Override
 	public String getDroneStatus(Drone drone) {
+		
 		Random rand = new Random();
-		if(rand.nextBoolean()) {
+		if(drone.getStatus().equals("Flying")) {
+			return "Flying";
+		}
+		else if(rand.nextBoolean()) {
 			return "Idle";
 		} else {
 			return "Flying";
 		}
+		
 	}
 	
 	@Override
@@ -337,6 +344,7 @@ public class MockServer implements ServerInterface {
 			return "Working";
 		}
 	}
+
 
 	@Override
 	public void setRestockLevels(Dish dish, Number restockThreshold, Number restockAmount) {
@@ -384,6 +392,10 @@ public class MockServer implements ServerInterface {
 
 	@Override
 	public Postcode getDroneSource(Drone drone) {
+		if(drone.getSource() == null) {
+			drone.setSource(getRestaurantPostcode());
+			return drone.getSource();
+		}
 		return drone.getSource();
 	}
 
@@ -410,6 +422,8 @@ public class MockServer implements ServerInterface {
 	public Restaurant getRestaurant() {
 		return restaurant;
 	}
+	
+	
 
 
 }

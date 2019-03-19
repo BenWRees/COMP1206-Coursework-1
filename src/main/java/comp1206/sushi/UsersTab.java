@@ -1,10 +1,15 @@
 package comp1206.sushi;
 
+import java.util.ArrayList;
+
 import comp1206.sushi.ServerApplication;
 import comp1206.sushi.mock.MockServer;
+import comp1206.sushi.server.ServerWindow;
+import comp1206.sushi.server.ServerInterface.UnableToDeleteException;
 import comp1206.sushi.common.User;
 import comp1206.sushi.common.Ingredient;
 import comp1206.sushi.common.Postcode;
+import comp1206.sushi.common.UpdateListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -31,7 +36,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.control.PasswordField;
 
-public class UsersTab extends ServerApplication {
+public class UsersTab extends ServerWindow {
 	private Tab usersTab;
 	private ObservableList<User> modelViewLists;
 	private ListView<User> viewPanel;
@@ -46,7 +51,7 @@ public class UsersTab extends ServerApplication {
 	private VBox extraInfoPanel;
 
 	
-	UsersTab() {
+	public UsersTab() {
         usersTab = new Tab();
         usersTab.setText("Users");
         usersTab.setContent(usersTab());
@@ -138,6 +143,28 @@ public class UsersTab extends ServerApplication {
                 }
             };
         add.setOnAction(addButton);
+        //getServer().addUpdateListener((UpdateListener) addButton);
+        
+        /*
+         * remove button action event
+         */
+        EventHandler<ActionEvent> removeButton = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                	//need to work out how to remove selected object else {
+                		removeObject();
+					
+					//need to update ListView every time button is pressed
+				} catch (Exception e) {
+					 //TODO Auto-generated catch block
+						popUp("Must Select an Object");
+				}
+            }
+        };
+        remove.setOnAction(removeButton);
+        //getServer().addUpdateListener((UpdateListener) removeButton);
+
         
         /*
          * move up button action event
@@ -160,6 +187,8 @@ public class UsersTab extends ServerApplication {
             }
         };
         moveUp.setOnAction(moveUpButton);
+        //getServer().addUpdateListener((UpdateListener) moveUpButton);
+
         
         /*
          * move down button action event
@@ -182,6 +211,8 @@ public class UsersTab extends ServerApplication {
             }
         };
         moveDown.setOnAction(moveDownButton);
+//        getServer().addUpdateListener((UpdateListener) moveDownButton);
+
         
         /*
          * extra info panel button action event
@@ -242,6 +273,24 @@ public class UsersTab extends ServerApplication {
     		modelViewLists.add(newUser);
     	}
     	
+    }
+    
+  //need to prevent removal of a postcode if the postcode is being used by a supplier
+    protected void removeObject() throws UnableToDeleteException  {
+    		User userToRemove = viewPanel.getSelectionModel().getSelectedItem();
+    		modelViewLists.remove(userToRemove);
+    		int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
+    		if(actualIndex == 1) {
+    			actualIndex = 0;
+    		}
+    		Postcode actualPostcodeToRemove = getServer().getPostcodes().get(actualIndex);
+    		if(viewPanel.getSelectionModel().isEmpty()== false) {
+    			getServer().removePostcode(actualPostcodeToRemove);
+    		}
+    		if(viewPanel.getSelectionModel().isEmpty()) {
+    			popUp("No Object Selected: Please Select an Object");
+    		}
+    	//}
     }
     
     protected void moveUp() {

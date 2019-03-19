@@ -10,9 +10,12 @@ import java.util.Set;
 import comp1206.sushi.ServerApplication;
 import comp1206.sushi.common.Ingredient;
 import comp1206.sushi.common.Postcode;
+import comp1206.sushi.common.Supplier;
+import comp1206.sushi.common.UpdateListener;
 import comp1206.sushi.common.Dish;
 import comp1206.sushi.mock.MockServer;
 import comp1206.sushi.server.ServerInterface.UnableToDeleteException;
+import comp1206.sushi.server.ServerWindow;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -41,7 +44,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.control.ListCell;
 
-public class DishesTab extends ServerApplication {
+public class DishesTab extends ServerWindow {
 	private Tab dishesTab;
 	private Label dishNamePrompt;
 	private TextField dishName;
@@ -64,7 +67,7 @@ public class DishesTab extends ServerApplication {
 	private ListView<Recipe> recipeList;
 	private ArrayList<Ingredient> bannedIngredients;
 	
-	DishesTab() {
+	public DishesTab() {
         dishesTab = new Tab();
         dishesTab.setText("Dishes");
         dishesTab.setContent(dishesTab());
@@ -175,6 +178,7 @@ public class DishesTab extends ServerApplication {
         };
         
        addIngredient.setOnAction(addIngredientListener);
+       //getServer().addUpdateListener((UpdateListener) addIngredientListener);
        
        /*
         * remove ingredient event listener
@@ -199,6 +203,7 @@ public class DishesTab extends ServerApplication {
        };
        
       removeIngredient.setOnAction(removeIngredientListener);
+      //getServer().addUpdateListener((UpdateListener) removeIngredientListener);
 
         fieldsBox.setVgap(5);
         fieldsBox.setHgap(7);
@@ -254,6 +259,16 @@ public class DishesTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event){
                     try {
+                    	
+                    	ArrayList<String> dishNames = new ArrayList<String>();
+                    	for(Dish dish : getServer().getDishes()) {
+                    		String dishName = dish.getName().replaceAll("\\s+", "");
+                    		dishNames.add(dishName);
+                    	}
+                    	if(dishNames.contains(dishName.getText())) {
+                    		popUp("Cannot add a Dish with a Name already being used");
+                    	}
+                    	
     					constructObject();
     			    	dishName.setText("");
     			    	dishPrice.setText("");
@@ -271,6 +286,8 @@ public class DishesTab extends ServerApplication {
                 }
             };
         add.setOnAction(addButton);
+        //getServer().addUpdateListener((UpdateListener) addButton);
+
         
         /*
          * remove button action event
@@ -291,6 +308,8 @@ public class DishesTab extends ServerApplication {
             }
         };
         remove.setOnAction(removeButton);
+        //getServer().addUpdateListener((UpdateListener) removeButton);
+
         
         /*
          * move up button action event
@@ -313,6 +332,8 @@ public class DishesTab extends ServerApplication {
             }
         };
         moveUp.setOnAction(moveUpButton);
+        //getServer().addUpdateListener((UpdateListener) moveUpButton);
+
         
         /*
          * move down button action event
@@ -335,6 +356,8 @@ public class DishesTab extends ServerApplication {
             }
         };
         moveDown.setOnAction(moveDownButton);
+        //getServer().addUpdateListener((UpdateListener) moveDownButton);
+
         
         /*
          * extra info panel button action event
@@ -395,9 +418,9 @@ public class DishesTab extends ServerApplication {
     		TextField dishDescription = new TextField(viewPanel.getSelectionModel().getSelectedItem().getDescription());
     		TextField dishPrice = new TextField(viewPanel.getSelectionModel().getSelectedItem().getPrice().toString());
     		ComboBox<Number> dishRestockThreshold = new ComboBox<Number>(FXCollections.observableArrayList(comboBoxIntegers));
-    		dishRestockThreshold.setPromptText(viewPanel.getSelectionModel().getSelectedItem().getRestockThreshold().toString());
+    		dishRestockThreshold.setPromptText(getServer().getRestockThreshold(viewPanel.getSelectionModel().getSelectedItem()).toString());
     		ComboBox<Number> dishRestockAmount = new ComboBox<Number>(FXCollections.observableArrayList(comboBoxIntegers));
-    		dishRestockAmount.setPromptText(viewPanel.getSelectionModel().getSelectedItem().getRestockAmount().toString());
+    		dishRestockAmount.setPromptText(getServer().getRestockAmount(viewPanel.getSelectionModel().getSelectedItem()).toString());
     		
     		
     		Iterator ingredientsListIt = viewPanel.getSelectionModel().getSelectedItem().getRecipe().keySet().iterator();
@@ -483,6 +506,8 @@ public class DishesTab extends ServerApplication {
              };
              
             addIngredient.setOnAction(addIngredientListener);
+            //getServer().addUpdateListener((UpdateListener) addIngredientListener);
+
             
             /*
              * remove ingredient event listener
@@ -507,6 +532,8 @@ public class DishesTab extends ServerApplication {
             };
             
            removeIngredient.setOnAction(removeIngredientListener);
+           //getServer().addUpdateListener((UpdateListener) removeIngredientListener);
+
 
     		
     		/*
@@ -517,6 +544,8 @@ public class DishesTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
+                		String dishNameNorm = dishName.getText().replaceAll("\\s+", "");
+                		dishNameNorm.toUpperCase();
                 		ArrayList<String> dishes = new ArrayList<String>();
                 		for(Dish dishName : getServer().getDishes()) {
                 			String nameToEnter = dishName.getName().replaceAll("\\s+", "");
@@ -538,7 +567,7 @@ public class DishesTab extends ServerApplication {
                     	if(dishRestockAmount.getSelectionModel().isEmpty()) {
                     		dishRestockAmount.getSelectionModel().select(viewPanel.getSelectionModel().getSelectedItem().getRestockAmount());
                     	}
-                    	if(dishes.contains(dishName.getText())) {
+                    	if(dishes.contains(dishNameNorm)) {
                 			popUp("Cannot Add Duplicate Dishes");
                 		}
                     
@@ -548,16 +577,15 @@ public class DishesTab extends ServerApplication {
                     	 dishObserved.setPrice(Integer.parseInt(dishPrice.getText()));
                     	 dishObserved.setRestockThreshold(dishRestockThreshold.getSelectionModel().getSelectedItem());
                     	 dishObserved.setRestockAmount(dishRestockAmount.getSelectionModel().getSelectedItem());
-                    	 viewPanel.getSelectionModel().getSelectedItem().getRecipe().clear();                   	 
+                    	 viewPanel.getSelectionModel().getSelectedItem().getRecipe().clear();  
      					HashMap<Ingredient,Number> newRecipe = new HashMap<Ingredient,Number>();;
      					for(Recipe currentRecipe : listOfRecipe) {
      						newRecipe.put(currentRecipe.getIngredient(), currentRecipe.getQuantity());
      					}
-     				
-     					viewPanel.getSelectionModel().getSelectedItem().setRecipe(newRecipe);
-                    	
-                    	 System.out.println(viewPanel.getSelectionModel().getSelectedItem().getRecipe().keySet());
-                    	 System.out.println(viewPanel.getSelectionModel().getSelectedItem().getRecipe().values());
+     					getServer().setRecipe(dishObserved, newRecipe);
+     					getServer().setRestockLevels(dishObserved, dishRestockThreshold.getSelectionModel().getSelectedItem(), dishRestockAmount.getSelectionModel().getSelectedItem());
+     					getServer().setStock(dishObserved, dishRestockAmount.getSelectionModel().getSelectedItem());
+     					//viewPanel.getSelectionModel().getSelectedItem().setRecipe(newRecipe);
                     	} catch(NumberFormatException e) {
                     		popUp("Price must be a Number");
                     	}
@@ -571,6 +599,8 @@ public class DishesTab extends ServerApplication {
                 }
             };
             editButton.setOnAction(editButtonAction);
+            //getServer().addUpdateListener((UpdateListener) editButtonAction);
+
 
     		
     		extraInfoPanel.getChildren().add(extraInfoDesign);
@@ -583,6 +613,8 @@ public class DishesTab extends ServerApplication {
      */
     protected void constructObject() {
 		ArrayList<String> dishes = new ArrayList<String>();
+		String dishNameNorm = dishName.getText().replaceAll("\\s+", "");
+		dishNameNorm.toUpperCase();
 		for(Dish dishName : getServer().getDishes()) {
 			String nameToEnter = dishName.getName().replaceAll("\\s+", "");
 			nameToEnter.toUpperCase();
@@ -594,7 +626,7 @@ public class DishesTab extends ServerApplication {
     			restockAmount.getSelectionModel().isEmpty()) {
     				popUp("Incompleted Field: make sure all Fields are complete");
     			} 
-		if(dishes.contains(dishName.getText())) {
+		if(dishes.contains(dishNameNorm)) {
 			popUp("Cannot Add Duplicate Dishes");
 		} else {
     			try {

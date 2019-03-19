@@ -33,6 +33,8 @@ public class Postcode extends Model {
 	private Map<String,Double> latLong;
 	private Number distance;
 	private URL postcodeURL;
+	private Double lat;
+	private Double lon;
 	private static final Double EarthRadius = 6371e3; //metres
 
 	public Postcode(String code) {
@@ -98,7 +100,7 @@ public class Postcode extends Model {
 	/*
 	 * https://docs.oracle.com/javase/tutorial/networking/urls/readingURL.html
 	 */
-	protected void parseURL(String name, Map<String,Double> latLong)  {
+	public void parseURL(String name, Map<String,Double> latLong)  {
 		try {
 		StringBuilder address = new StringBuilder("https://www.southampton.ac.uk/~ob1a12/postcode/postcode.php?postcode=");
         String newName = name.replaceAll("\\s+","");

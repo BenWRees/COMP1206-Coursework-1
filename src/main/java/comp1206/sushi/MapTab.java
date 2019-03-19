@@ -1,14 +1,44 @@
 package comp1206.sushi;
 
 
+import java.awt.event.ActionEvent;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Locale;
 
+import com.lynden.gmapsfx.GoogleMapView;
+import com.lynden.gmapsfx.MapComponentInitializedListener;
+import com.lynden.gmapsfx.javascript.event.UIEventHandler;
+import com.lynden.gmapsfx.javascript.event.UIEventType;
+import com.lynden.gmapsfx.javascript.object.Animation;
+import com.lynden.gmapsfx.javascript.object.GoogleMap;
+import com.lynden.gmapsfx.javascript.object.InfoWindow;
+import com.lynden.gmapsfx.javascript.object.InfoWindowOptions;
+import com.lynden.gmapsfx.javascript.object.LatLong;
+import com.lynden.gmapsfx.javascript.object.MapOptions;
+import com.lynden.gmapsfx.javascript.object.MapTypeIdEnum;
+import com.lynden.gmapsfx.javascript.object.Marker;
+import com.lynden.gmapsfx.javascript.object.MarkerOptions;
+
+import comp1206.sushi.common.Drone;
+import comp1206.sushi.common.Supplier;
+import comp1206.sushi.server.ServerWindow;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.*;
-
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
+import javafx.scene.control.ToolBar;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.event.EventHandler;
+import javafx.util.Duration;
 
 /*
  * need to:
@@ -20,15 +50,26 @@ import javafx.scene.paint.Color;
  * 	need a repaint event to repaint the map 
  * 
  */
-public class MapTab {
+public class MapTab extends ServerWindow implements MapComponentInitializedListener {
 	private Tab mapTab;
 	private Canvas canvas;
 	private GraphicsContext gc;
+    private GoogleMapView mapView;
+    private GoogleMap map;
+    private BorderPane mapPane;
+    private ToolBar movementButtons;
+    private ArrayList<Marker> markers;
+
+    
+    private Number RestaurantLat;
+    private Number RestaurantLon;
+    
 	
-	MapTab() {
+	public MapTab() {
         mapTab = new Tab();
         mapTab.setText("Map");
         mapTab.setContent(mapTab());
+        
 	}
 	
 	public void mapTabContent() {
@@ -39,56 +80,149 @@ public class MapTab {
 	 * populates the panel that contains the map
 	 */
 	private Pane mapTab() {
-		BorderPane mainMapPanel = new BorderPane();
-		canvas = new Canvas(500,700);
-		gc = canvas.getGraphicsContext2D();
-		drawBuildings(gc);
-		mainMapPanel.setCenter(canvas);		
-		return mainMapPanel;
+		mapView = new GoogleMapView(Locale.getDefault().getLanguage(), null);
+		mapView.addMapInializedListener(this);
+		ToolBar movementButtons = new ToolBar();
+		mapPane = new BorderPane();
+		mapPane.setCenter(mapView);
+		startTimer();
+		return mapPane;
 	}
 	
 	/*
-	 * works out the position of all the buildings in the vicinity and 
-	 * adds them to the canvas
+	 * Creates and populates Map
 	 */
-	private void drawBuildings(GraphicsContext gc) {
-		gc.setFill(Color.BLACK);
-		gc.setStroke(Color.CORNFLOWERBLUE);
-		gc.setLineWidth(7);
+	public void mapInitialized() {		
+	    //Set the initial properties of the map.
+		try {
+	    MapOptions mapOptions = new MapOptions();
+	    LatLong restaurant = new LatLong(getServer().getRestaurant().getLocation().getLatLong().get("lat"),getServer().getRestaurant().getLocation().getLatLong().get("lon"));
+
+	    mapOptions.center(restaurant)
+	            .mapType(MapTypeIdEnum.ROADMAP)
+	            .overviewMapControl(false)
+	            .panControl(false)
+	            .rotateControl(false)
+	            .scaleControl(false)
+	            .streetViewControl(false)
+	            .zoomControl(false)
+	            .zoom(15);
+
+	    map = mapView.createMap(mapOptions);
+
+	    //Add a marker to the map
+	    MarkerOptions markerOptions = new MarkerOptions();
+
+	    markerOptions.position(restaurant)
+	                .visible(Boolean.TRUE)
+	                .title("Restaurant")
+	                .label("Restaurant");
+	    			
+	    
+
+	    Marker marker = new Marker(markerOptions);
+	    marker.setTitle("Restaurant");
+	    marker.setVisible(true);
+	    map.addMarker(marker);
+	    
+	    map.addMarkers(addSupplyMarkers());
+	    this.refresh();
+	    /*
+	     * add mouse event to show InfoBox when cursor moves over a marker
+	     */
+	    /*
+        	InfoWindowOptions infoWindowOptions = new InfoWindowOptions();
+            infoWindowOptions.content("<h2>Restaurant</h2>"
+                                       + "Postcode: SO17 1BJ<br>");
+            InfoWindow fredWilkeInfoWindow = new InfoWindow(infoWindowOptions);
+            fredWilkeInfoWindow.open(map, marker);
+         */
+	    
+
+		} catch(Exception e) {
+			e.getStackTrace();
+		}
+	}
+	
+	
+	
+	public ArrayList<Marker> addSupplyMarkers() {
+		try {
+		markers = new ArrayList<Marker>();
+		for(Supplier currentSupplier : getServer().getSuppliers()) {
+			
+			MarkerOptions markerOptions = new MarkerOptions();
+
+			LatLong currentSupplierPos = new LatLong(currentSupplier.getPostcode().getLatLong().get("lat"),currentSupplier.getPostcode().getLatLong().get("lon"));
+		    markerOptions.position(currentSupplierPos)
+		                .visible(Boolean.TRUE)
+		                .label(currentSupplier.getName());
+		    			
+		    Marker marker = new Marker(markerOptions);
+		    marker.setVisible(Boolean.TRUE);
+		    markers.add(marker);
+		    
+		}
 		
-		gc.fillRect(0, 0, 10, 10);
-		gc.fillRect(0, 15, 10, 10);
-		gc.fillRect(0, 30, 10, 10);
-		gc.fillRect(30, 0, 10, 10);
-	}
-	
-	/*
-	 * works out the position of all the roads in the vicinity and 
-	 * adds them to the canvas
-	 */
-	private void drawRoads(GraphicsContext gc) {
+		for(Drone currentDrone: getServer().getDrones()) {
+			
+			MarkerOptions markerOptions = new MarkerOptions();
+
+			LatLong currentSupplierPos = new LatLong(50.93772,-1.4);
+		    markerOptions.position(currentSupplierPos)
+		                .visible(Boolean.TRUE)
+		                .label(currentDrone.getName());
+		    			
+		    Marker marker = new Marker(markerOptions);
+		    marker.setVisible(Boolean.TRUE);
+		    markers.add(marker);
+		    
+		}
 		
-	}
-	
-	/*
-	 * adds the drones to the map, all new drones start at the restaurant and animates the drones to fly directly to their destination
-	 */
-	private void animateDrones(GraphicsContext gc) {
 		
-	}
-	
-	/*
-	 * adds the progress bars of each drone
-	 * Keeps track of updates on each order with a running message list
-	 */
-	private Pane progressBarPane() {
+		
+		
+		
+		return markers;
+		} catch(Exception e) {
+			e.getStackTrace();
+		}
 		return null;
 	}
+	
+	//public void 
 	
 	
     public Tab getTab() {
     	return mapTab;
     }
+    
+    public void refresh() {
+    	Timeline timeline = new Timeline();
+    	timeline.setCycleCount(Timeline.INDEFINITE);
+    	 timeline.getKeyFrames().add(new KeyFrame(Duration.millis(5000), (actionEvent) -> {
+    	map.removeMarkers(markers);
+    	addSupplyMarkers();
+    	map.addMarkers(addSupplyMarkers());
+    	 }, null, null));
+    	 timeline.play();
+    	 
+    }
+    
+    
+    /*
+    public void startTimer() {
+    	EventHandler<ActionEvent> update = new EventHandler<T>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+           	 mapTabContent();
+            }
+    	};
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0)), update, new KeyValue());
+        timeline.setCycleCount(Animation.INDEFINITE);
+     timeline.play();
+    }
+    */
      
 
 }

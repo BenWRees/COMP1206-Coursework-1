@@ -7,16 +7,20 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import comp1206.sushi.ServerApplication;
 import comp1206.sushi.mock.MockServer;
 import comp1206.sushi.server.ServerInterface.UnableToDeleteException;
+import comp1206.sushi.server.ServerWindow;
 import comp1206.sushi.common.Dish;
 import comp1206.sushi.common.Drone;
 import comp1206.sushi.common.Ingredient;
 import comp1206.sushi.common.Postcode;
 import comp1206.sushi.common.Supplier;
+import comp1206.sushi.common.UpdateListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.*;
@@ -41,14 +45,14 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class PostcodeTab extends ServerApplication {
+public class PostcodeTab extends ServerWindow {
 	private Tab postcodesTab;
 	private Label postcodeEntryPrompt;
 	private TextField postcodeEntry;
 	private ListView<Postcode> viewPanel;
 	private VBox extraInfoPanel;
 
-	PostcodeTab() {
+	public PostcodeTab() {
         postcodesTab = new Tab();
         postcodesTab.setText("Postcodes");
         postcodesTab.setContent(postcodeTab());
@@ -125,6 +129,8 @@ public class PostcodeTab extends ServerApplication {
                }
             };
         add.setOnAction(addButton);
+       // getServer().addUpdateListener((UpdateListener) addButton);
+
 
         /*
          * remove button action event
@@ -160,6 +166,8 @@ public class PostcodeTab extends ServerApplication {
             }
         };
         remove.setOnAction(removeButton);
+        //getServer().addUpdateListener((UpdateListener) removeButton);
+
 
         /*
          * move up button action event
@@ -182,6 +190,8 @@ public class PostcodeTab extends ServerApplication {
             }
         };
         moveUp.setOnAction(moveUpButton);
+        //getServer().addUpdateListener((UpdateListener) moveUpButton);
+
 
         /*
          * move down button action event
@@ -204,6 +214,8 @@ public class PostcodeTab extends ServerApplication {
             }
         };
         moveDown.setOnAction(moveDownButton);
+        //getServer().addUpdateListener((UpdateListener) moveDownButton);
+
 
         /*
          * extra info panel button action event
@@ -289,30 +301,35 @@ public class PostcodeTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
+                    	String postcodeNameNorm = name.getText().replaceAll("\\s+", "");
+                    	postcodeNameNorm.toUpperCase();
             			ArrayList<String> postcodes = new ArrayList<String>();
             			for(Postcode postcodeName : getServer().getPostcodes()) {
             				String nameToEnter = postcodeName.getName().replaceAll("\\s+", "");
             				nameToEnter.toUpperCase();
             				postcodes.add(nameToEnter);
             			}
-            			if(postcodes.contains(name.getText())) {
+            			if(postcodes.contains(postcodeNameNorm)) {
             				popUp("Cannot Change name to a pre-Existing Postcodes");
+            			} 
+                    	if(serverConnectionCheck(name.getText())) {
+                    		popUp("Cannot connect to Server: Please enter a proper Postcode");
+                    	}	
+            			if(name.getText().trim().isEmpty()) {
+            				popUp("Name must have A valid postcode");
             			} else {
                     	 postcodeObserved.setName(name.getText());
             			}
                     	 //getPostcodeList().remove(postcodeObserved);
     					//need to update ListView every time button is pressed
-    				} catch (Exception e) {
-    					if(viewPanel.getSelectionModel().isEmpty()) {
-    					 //TODO Auto-generated catch block
-    						popUp("Must Select an Object");
-    						popUp("Cannot connect to Server: Please enter a proper Postcode");
-    					}
-    					
-    				}
+    					//popUp("Cannot connect to Server: Please enter a proper Postcode");
+                    } catch(Exception e) {
+                    }
                 }
             };
             editButton.setOnAction(editButtonAction);
+            //getServer().addUpdateListener((UpdateListener) editButtonAction);
+
 
 
 
@@ -367,7 +384,7 @@ public class PostcodeTab extends ServerApplication {
     		if(viewPanel.getSelectionModel().isEmpty()) {
     			popUp("No Object Selected: Please Select an Object");
     		}
-    	//}
+    	
     }
 
     protected void moveUp() {
@@ -406,21 +423,21 @@ public class PostcodeTab extends ServerApplication {
     	}
     }
     
-    public boolean serverConnectionCheck() {
+    public boolean serverConnectionCheck(String newName) {
     	try {
     	StringBuilder address = new StringBuilder("https://www.southampton.ac.uk/~ob1a12/postcode/postcode.php?postcode=");
-        String newName = postcodeEntry.getText().replaceAll("\\s+","");
+        //String newName = postcodeEntry.getText().replaceAll("\\s+","");
         address.append(newName);
         URL postcodeURL = new URL(address.toString());
         HttpURLConnection conn = (HttpURLConnection) postcodeURL.openConnection();
         if(conn.getResponseCode() == 200) {
-        	return false;
+        	return true;
         }
-        return true;
+        return false;
     	}catch(Exception e) {
     		e.getStackTrace();
     	}
-    	return true;
+    	return false;
     }
 
 

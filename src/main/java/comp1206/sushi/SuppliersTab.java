@@ -8,8 +8,12 @@ import comp1206.sushi.common.Drone;
 import comp1206.sushi.common.Ingredient;
 import comp1206.sushi.common.Postcode;
 import comp1206.sushi.common.Supplier;
+import comp1206.sushi.common.UpdateListener;
 import comp1206.sushi.mock.MockServer;
 import comp1206.sushi.server.ServerInterface.UnableToDeleteException;
+import comp1206.sushi.server.ServerWindow;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -34,8 +38,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
-public class SuppliersTab extends ServerApplication {
+public class SuppliersTab extends ServerWindow {
 	private Tab suppliersTab;
 	private Label suppliersNamePrompt;
 	private TextField suppliersName;
@@ -47,7 +52,7 @@ public class SuppliersTab extends ServerApplication {
 	private ArrayList<Supplier> suppliersInIngredient = new ArrayList<Supplier>();
 
 	
-	SuppliersTab() {
+	public SuppliersTab() {
         suppliersTab = new Tab();
         suppliersTab.setText("Suppliers");
         suppliersTab.setContent(suppliersTab());
@@ -122,16 +127,25 @@ public class SuppliersTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event){
                     try {
+                    	ArrayList<String> suppliersPostcodes = new ArrayList<String>();
+                    	for(Supplier supplier : getServer().getSuppliers()) {
+                    		suppliersPostcodes.add(supplier.getPostcode().getName());
+                    	}
+                    	if(suppliersPostcodes.contains(suppliersPostcode.getSelectionModel().getSelectedItem().toString())) {
+                    		popUp("Cannot add a Supplier with a Postcode already being used");
+                    	} else {
     					constructObject();
     			    	suppliersName.setText("");
-    			    	suppliersPostcode.getSelectionModel().select(null);;
-    			    	System.out.println("Server: " + getServer().getSuppliers());
-    					System.out.println("ViewPanel: " + getSuppliersList()); //DEBUG
+    			    	suppliersPostcode.getSelectionModel().select(null);
+    			    	System.out.println(getServer().getSuppliers());
+                    	}
     				} catch (Exception e) {
     					}
     				}
             };
         add.setOnAction(addButton);
+        //getServer().addUpdateListener((UpdateListener) addButton);
+
         
         /*
          * remove button action event
@@ -163,6 +177,8 @@ public class SuppliersTab extends ServerApplication {
             }
         };
         remove.setOnAction(removeButton);
+        //getServer().addUpdateListener((UpdateListener) removeButton);
+
         
         /*
          * move up button action event
@@ -185,6 +201,8 @@ public class SuppliersTab extends ServerApplication {
             }
         };
         moveUp.setOnAction(moveUpButton);
+        //getServer().addUpdateListener((UpdateListener) moveUpButton);
+
         
         /*
          * move down button action event
@@ -207,6 +225,8 @@ public class SuppliersTab extends ServerApplication {
             }
         };
         moveDown.setOnAction(moveDownButton);
+        //getServer().addUpdateListener((UpdateListener) moveDownButton);
+
         
         /*
          * extra info panel button action event
@@ -272,23 +292,35 @@ public class SuppliersTab extends ServerApplication {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
+                    	Supplier selectedSupplier = viewPanel.getSelectionModel().getSelectedItem();	
+                    	ArrayList<String> suppliersPostcodes = new ArrayList<String>();
+                    	for(Supplier supplier : getServer().getSuppliers()) {
+                    		suppliersPostcodes.add(supplier.getPostcode().getName());
+                    	}
+                    	if(suppliersPostcodes.contains(suppliersPostcode.getSelectionModel().getSelectedItem().toString())) {
+                    		popUp("Cannot edit a Supplier with a Postcode already being used");
+                    	}
                     	if(supplierName.getText() == null) {
-                    		supplierName.setText(viewPanel.getSelectionModel().getSelectedItem().getName());
+                    		supplierName.setText(selectedSupplier.getName());
                     	}
                     	if(supplierPostcode.getSelectionModel().isEmpty()) {
-                    		supplierPostcode.getSelectionModel().select(viewPanel.getSelectionModel().getSelectedItem().getPostcode());
+                    		supplierPostcode.getSelectionModel().select(selectedSupplier.getPostcode());
+                    	} else {
+                    	selectedSupplier.setName(supplierName.getText());
+                    	selectedSupplier.setPostcode(supplierPostcode.getSelectionModel().getSelectedItem()); 
                     	}
-        
-                    	viewPanel.getSelectionModel().getSelectedItem().setName(supplierName.getText());
-                    	viewPanel.getSelectionModel().getSelectedItem().setPostcode(supplierPostcode.getSelectionModel().getSelectedItem());
-                    	//getPostcodesInSupplier().remove(viewPanel.getSelectionModel().getSelectedItem().getPostcode());
-                    	//getPostcodesInSupplier().add(supplierPostcode.getSelectionModel().getSelectedItem());
     				} catch (Exception e) {
-    				
+    					if(viewPanel.getSelectionModel().isEmpty()) {
+       					 //TODO Auto-generated catch block
+       						popUp("Must Select an Object");
+    					}
     				}
                 }
             };
             editButton.setOnAction(editButtonAction);
+            //getServer().addUpdateListener((UpdateListener) editButtonAction);
+
+            
     		extraInfoPanel.getChildren().add(extraInfoDesign);
     		
     		return extraInfoPanel;
@@ -297,7 +329,6 @@ public class SuppliersTab extends ServerApplication {
     }
     
     protected void constructObject() {
-    	
 		if(suppliersPostcode.getSelectionModel().isEmpty() || suppliersName.getText().trim().isEmpty()) {
 			popUp("Incompleted Field: make sure all Fields are complete");
 		} else {
@@ -373,6 +404,18 @@ public class SuppliersTab extends ServerApplication {
         	getServer().getSuppliers().remove(supplierIndexToMove);
         	getServer().getSuppliers().add(supplierIndexToMove+1, supplierToMove);
     	}
+    }
+    
+    public void refresh() {
+    	Timeline timeline = new Timeline();
+    	timeline.setCycleCount(Timeline.INDEFINITE);
+    	 timeline.getKeyFrames().add(new KeyFrame(Duration.millis(5000), (actionEvent) -> {
+    		 Postcode currentPostcode = suppliersPostcode.getSelectionModel().getSelectedItem();
+    		 suppliersPostcode = new ComboBox<Postcode>(FXCollections.observableArrayList(getServer().getPostcodes()));
+    			suppliersPostcode.setPromptText("Suppliers Postcode");
+    	 }, null, null));
+    	 timeline.play();
+    	 
     }
     
     /*

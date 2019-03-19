@@ -5,9 +5,11 @@ import java.util.ArrayList;
 
 import comp1206.sushi.ServerApplication;
 import comp1206.sushi.mock.MockServer;
+import comp1206.sushi.server.ServerWindow;
 import comp1206.sushi.common.Drone;
 import comp1206.sushi.common.Postcode;
 import comp1206.sushi.common.Staff;
+import comp1206.sushi.common.UpdateListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.*;
@@ -31,7 +33,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class DronesTab extends ServerApplication {
+public class DronesTab extends ServerWindow {
 	private Tab dronesTab;
 	private Label droneSpeedPrompt;
 	private TextField droneSpeed;
@@ -39,7 +41,7 @@ public class DronesTab extends ServerApplication {
 	private ListView<Drone> viewPanel;
 	private VBox extraInfoPanel;
 	
-	DronesTab() {
+	public DronesTab() {
         dronesTab = new Tab();
         dronesTab.setText("Drones");
         dronesTab.setContent(dronesTab());
@@ -110,6 +112,8 @@ public class DronesTab extends ServerApplication {
                 }
             };
         add.setOnAction(addButton);
+        //getServer().addUpdateListener((UpdateListener) addButton);
+
         
         /*
          * remove button action event
@@ -130,6 +134,8 @@ public class DronesTab extends ServerApplication {
             }
         };
         remove.setOnAction(removeButton);
+        //getServer().addUpdateListener((UpdateListener) removeButton);
+
         
         /*
          * move up button action event
@@ -152,6 +158,8 @@ public class DronesTab extends ServerApplication {
             }
         };
         moveUp.setOnAction(moveUpButton);
+        //getServer().addUpdateListener((UpdateListener) moveUpButton);
+
         
         /*
          * move down button action event
@@ -174,6 +182,8 @@ public class DronesTab extends ServerApplication {
             }
         };
         moveDown.setOnAction(moveDownButton);
+        //getServer().addUpdateListener((UpdateListener) moveDownButton);
+
         
         /*
          * extra info panel button action event
@@ -216,30 +226,34 @@ public class DronesTab extends ServerApplication {
     		
     		Drone droneObserved = viewPanel.getSelectionModel().getSelectedItem();
     		
-    		TextField droneSpeed = new TextField(viewPanel.getSelectionModel().getSelectedItem().getSpeed().toString());
-    		//String droneProgress = viewPanel.getSelectionModel().getSelectedItem().getProgress().toString();
+    		TextField droneSpeed = new TextField(getServer().getDroneSpeed(viewPanel.getSelectionModel().getSelectedItem()).toString());
+    		//String droneProgress = getServer().getDroneProgress(viewPanel.getSelectionModel().getSelectedItem()).toString();
     		String droneName = viewPanel.getSelectionModel().getSelectedItem().getName();
-    		//String droneSource = viewPanel.getSelectionModel().getSelectedItem().getSource().toString();
-    		//String droneDestination = viewPanel.getSelectionModel().getSelectedItem().getDestination().toString();
+    		String droneSource = getServer().getDroneSource(viewPanel.getSelectionModel().getSelectedItem()).toString();
+    		//String droneDestination = getServer().getDroneDestination(viewPanel.getSelectionModel().getSelectedItem()).toString();
     		String droneCapacity = viewPanel.getSelectionModel().getSelectedItem().getCapacity().toString();
     		String droneBattery = viewPanel.getSelectionModel().getSelectedItem().getBattery().toString();
-    		//String droneStatus = viewPanel.getSelectionModel().getSelectedItem().getStatus();
+    		String droneStatus = getServer().getDroneStatus(viewPanel.getSelectionModel().getSelectedItem()).toString();
     		
     		Label speed = new Label("Speed: ");
-    		//Label progress = new Label("Progress: " + droneProgress);
+    		Label progress = new Label("Progress: " /*+ droneProgress*/);
     		Label name = new Label("Name: " + droneName);
-    		//Label source = new Label("Source: " + droneSource);
-    		//Label destination = new Label("Destination: " + droneDestination);
+    		Label source = new Label("Source: " + droneSource);
+    		Label destination = new Label("Destination: " /*+ droneDestination*/);
     		Label capacity = new Label("Capacity: " + droneCapacity);
     		Label battery = new Label("Battery: " + droneBattery);
-    		//Label status = new Label("Status: " + droneStatus);
+    		Label status = new Label("Status: " + droneStatus);
     		
     		extraInfoDesign.add(name, 0, 0);
     		extraInfoDesign.add(speed,0,1);
     		extraInfoDesign.add(droneSpeed, 1, 1);
-    		extraInfoDesign.add(battery,0,2);
-    		extraInfoDesign.add(capacity,0,3);
-    		extraInfoDesign.add(editButton, 0, 4);
+    		extraInfoDesign.add(progress,0,2);
+    		extraInfoDesign.add(source,0,3);
+    		extraInfoDesign.add(destination,0,4);
+    		extraInfoDesign.add(battery,0,5);
+    		extraInfoDesign.add(capacity,0,6);
+    		extraInfoDesign.add(status,0,7);
+    		extraInfoDesign.add(editButton, 0, 8);
     		
     		/*
              * edit button action event
@@ -261,6 +275,8 @@ public class DronesTab extends ServerApplication {
                 }
             };
             editButton.setOnAction(editButtonAction);
+            //getServer().addUpdateListener((UpdateListener) editButtonAction);
+
     		
     		extraInfoPanel.getChildren().add(extraInfoDesign);
     		return extraInfoPanel;

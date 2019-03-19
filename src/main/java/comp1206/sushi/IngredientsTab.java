@@ -10,10 +10,12 @@ import javax.swing.text.html.HTMLDocument.Iterator;
 import comp1206.sushi.ServerApplication;
 import comp1206.sushi.mock.MockServer;
 import comp1206.sushi.server.ServerInterface.UnableToDeleteException;
+import comp1206.sushi.server.ServerWindow;
 import comp1206.sushi.common.Dish;
 import comp1206.sushi.common.Ingredient;
 import comp1206.sushi.common.Postcode;
 import comp1206.sushi.common.Supplier;
+import comp1206.sushi.common.UpdateListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -39,7 +41,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class IngredientsTab extends ServerApplication {
+public class IngredientsTab extends ServerWindow {
 	private Tab ingredientsTab;
 	private Label ingredientNamePrompt;
 	private TextField ingredientName;
@@ -54,7 +56,7 @@ public class IngredientsTab extends ServerApplication {
 	private ListView<Ingredient> viewPanel;
 	private VBox extraInfoPanel;
 	
-	IngredientsTab() {
+	public IngredientsTab() {
         ingredientsTab = new Tab();
         ingredientsTab.setText("Ingredients");
         ingredientsTab.setContent(ingredientsTab());
@@ -164,6 +166,8 @@ public class IngredientsTab extends ServerApplication {
                 }
             };
         add.setOnAction(addButton);
+        //getServer().addUpdateListener((UpdateListener) addButton);
+
         
         /*
          * remove button action event
@@ -202,6 +206,8 @@ public class IngredientsTab extends ServerApplication {
             }
         };
         remove.setOnAction(removeButton);
+        //getServer().addUpdateListener((UpdateListener) removeButton);
+
         
         /*
          * move up button action event
@@ -224,6 +230,8 @@ public class IngredientsTab extends ServerApplication {
             }
         };
         moveUp.setOnAction(moveUpButton);
+        //getServer().addUpdateListener((UpdateListener) moveUpButton);
+
         
         /*
          * move down button action event
@@ -246,6 +254,8 @@ public class IngredientsTab extends ServerApplication {
             }
         };
         moveDown.setOnAction(moveDownButton);
+        //getServer().addUpdateListener((UpdateListener) moveDownButton);
+
         
         /*
          * extra info panel button action event
@@ -295,9 +305,9 @@ public class IngredientsTab extends ServerApplication {
     		ComboBox<Supplier> ingredientSupplier = new ComboBox<Supplier>(FXCollections.observableArrayList(getServer().getSuppliers()));
     		ingredientSupplier.setPromptText(viewPanel.getSelectionModel().getSelectedItem().getSupplier().getName());
     		ComboBox<Number> ingredientRestockThreshold = new ComboBox<Number>(FXCollections.observableArrayList(comboBoxPopulation));
-    		ingredientRestockThreshold.setPromptText(viewPanel.getSelectionModel().getSelectedItem().getRestockThreshold().toString());
+    		ingredientRestockThreshold.setPromptText(getServer().getRestockThreshold(viewPanel.getSelectionModel().getSelectedItem()).toString());
     		ComboBox<Number> ingredientRestockAmount = new ComboBox<Number>(FXCollections.observableArrayList(comboBoxPopulation));
-    		ingredientRestockAmount.setPromptText(viewPanel.getSelectionModel().getSelectedItem().getRestockAmount().toString());
+    		ingredientRestockAmount.setPromptText(getServer().getRestockAmount(viewPanel.getSelectionModel().getSelectedItem()).toString());
     		
     		Label name = new Label("Name: ");
     		Label unit = new Label("Unit: ");
@@ -319,11 +329,14 @@ public class IngredientsTab extends ServerApplication {
     		
     		/*
              * edit button action event
+             * NEED TO SET RESTOCK LEVELS AND SET STOCK
              */
             EventHandler<ActionEvent> editButtonAction = new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
+                    	String ingredientNameNorm = ingredientName.getText().replaceAll("\\s+", "");
+                    	ingredientNameNorm.toUpperCase();
                 		ArrayList<String> ingredients = new ArrayList<String>();
                 		for(Ingredient ingredientName : getServer().getIngredients()) {
                 			String nameToEnter = ingredientName.getName().replaceAll("\\s+", "");
@@ -340,12 +353,12 @@ public class IngredientsTab extends ServerApplication {
                     		ingredientSupplier.getSelectionModel().select(viewPanel.getSelectionModel().getSelectedItem().getSupplier());
                     	}
                     	if(ingredientRestockThreshold.getSelectionModel().isEmpty()) {
-                    		ingredientRestockThreshold.getSelectionModel().select(viewPanel.getSelectionModel().getSelectedItem().getRestockThreshold());
+                    		ingredientRestockThreshold.getSelectionModel().select(getServer().getRestockThreshold(viewPanel.getSelectionModel().getSelectedItem()));
                     	}
                     	if(ingredientRestockAmount.getSelectionModel().isEmpty()) {
-                    		ingredientRestockAmount.getSelectionModel().select(viewPanel.getSelectionModel().getSelectedItem().getRestockAmount());
+                    		ingredientRestockAmount.getSelectionModel().select(getServer().getRestockAmount(viewPanel.getSelectionModel().getSelectedItem()));
                     	}
-                    	if(ingredients.contains(ingredientName.getText())) {
+                    	if(ingredients.contains(ingredientNameNorm)) {
                 			popUp("Cannot add Duplicate Ingredients");
                 		}
                     	 ingredientObserved.setName(ingredientName.getText());
@@ -355,7 +368,9 @@ public class IngredientsTab extends ServerApplication {
                     	 ingredientObserved.setRestockAmount(ingredientRestockAmount.getSelectionModel().getSelectedItem());
                     	 getSuppliersInIngredient().remove(ingredientObserved.getSupplier());
                     	 getSuppliersInIngredient().add(ingredientSupplier.getSelectionModel().getSelectedItem());
+                    	 getServer().setRestockLevels(ingredientObserved, ingredientRestockThreshold.getSelectionModel().getSelectedItem(), ingredientRestockAmount.getSelectionModel().getSelectedItem());
     					//need to update ListView every time button is pressed
+                    	   getServer().setStock(ingredientObserved, ingredientRestockAmount.getSelectionModel().getSelectedItem());
     				} catch (Exception e) {
     					if(viewPanel.getSelectionModel().isEmpty()) {
     					 //TODO Auto-generated catch block
@@ -365,6 +380,8 @@ public class IngredientsTab extends ServerApplication {
                 }
             };
             editButton.setOnAction(editButtonAction);
+            //getServer().addUpdateListener((UpdateListener) editButtonAction);
+
 
     		
     		extraInfoPanel.getChildren().add(extraInfoDesign);
@@ -375,6 +392,8 @@ public class IngredientsTab extends ServerApplication {
 
     
     protected void constructObject() {
+    	String ingredientNameNorm = ingredientName.getText().replaceAll("\\s+", "");
+    	ingredientNameNorm.toUpperCase();
 		ArrayList<String> ingredients = new ArrayList<String>();
 		for(Ingredient ingredientName : getServer().getIngredients()) {
 			String nameToEnter = ingredientName.getName().replaceAll("\\s+", "");
@@ -388,7 +407,7 @@ public class IngredientsTab extends ServerApplication {
     			ingredientRestockAmount.getSelectionModel().isEmpty()) {
     				popUp("Incompleted Field: make sure all Fields are complete");
     	} 
-		if(ingredients.contains(ingredientName.getText())) {
+		if(ingredients.contains(ingredientNameNorm)) {
 			popUp("Cannot add Duplicate Ingredients");
 		} else {
     			String name = ingredientName.getText();
@@ -400,6 +419,7 @@ public class IngredientsTab extends ServerApplication {
     			getIngredientsList().add(newIngredient);
     			getServer().addIngredient(name,unit,supplier,restockThreshold,restockAmount);
     		}
+		System.out.println(ingredients);
     }
      
     //having same issue with server and view panel, discrepancies in what is being removed
