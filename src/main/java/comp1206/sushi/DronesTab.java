@@ -1,7 +1,9 @@
 package comp1206.sushi;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import comp1206.sushi.ServerApplication;
 import comp1206.sushi.mock.MockServer;
@@ -9,6 +11,7 @@ import comp1206.sushi.server.ServerWindow;
 import comp1206.sushi.common.Drone;
 import comp1206.sushi.common.Postcode;
 import comp1206.sushi.common.Staff;
+import comp1206.sushi.common.Supplier;
 import comp1206.sushi.common.UpdateListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -59,7 +62,7 @@ public class DronesTab extends ServerWindow {
         BorderPane entryBox = new BorderPane();
         entryBox.setPadding(new Insets(10,0,10,20));
         GridPane fieldsBox = new GridPane();
-
+        setDroneDestinations();
         droneSpeedPrompt = new Label("Set Drone Speed");
         droneSpeed = new TextField();
         fieldsBox.add(droneSpeedPrompt,0,0);
@@ -193,7 +196,13 @@ public class DronesTab extends ServerWindow {
             @Override
             public void handle(MouseEvent event) {
             	updateUI(extraInfoPanel);
-                populateExtraInfoPanel();
+                try {
+                	
+					populateExtraInfoPanel();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
 
@@ -216,7 +225,14 @@ public class DronesTab extends ServerWindow {
         return topPanel;
     }
     
-    protected VBox populateExtraInfoPanel() {
+	public void setDroneDestinations() {
+			for(Drone currentDrone : getServer().getDrones()) {
+				Random r = new Random();
+				currentDrone.setDestination(getServer().getSuppliers().get(r.nextInt(getServer().getSuppliers().size())).getPostcode());
+			}
+	}
+    
+    protected VBox populateExtraInfoPanel() throws Exception {
     	while(viewPanel.getSelectionModel().getSelectedItem() != null) {
     		GridPane extraInfoDesign = new GridPane();
     		extraInfoDesign.setVgap(7);
@@ -226,20 +242,21 @@ public class DronesTab extends ServerWindow {
     		
     		Drone droneObserved = viewPanel.getSelectionModel().getSelectedItem();
     		
+    		
     		TextField droneSpeed = new TextField(getServer().getDroneSpeed(viewPanel.getSelectionModel().getSelectedItem()).toString());
-    		//String droneProgress = getServer().getDroneProgress(viewPanel.getSelectionModel().getSelectedItem()).toString();
+    		String droneProgress = getServer().getDroneProgress(droneObserved).toString();
     		String droneName = viewPanel.getSelectionModel().getSelectedItem().getName();
-    		String droneSource = getServer().getDroneSource(viewPanel.getSelectionModel().getSelectedItem()).toString();
-    		//String droneDestination = getServer().getDroneDestination(viewPanel.getSelectionModel().getSelectedItem()).toString();
+    		String droneSource = getServer().getDroneSource(droneObserved).getName();
+    		String droneDestination = getServer().getDroneDestination(droneObserved).getName();
     		String droneCapacity = viewPanel.getSelectionModel().getSelectedItem().getCapacity().toString();
     		String droneBattery = viewPanel.getSelectionModel().getSelectedItem().getBattery().toString();
     		String droneStatus = getServer().getDroneStatus(viewPanel.getSelectionModel().getSelectedItem()).toString();
     		
     		Label speed = new Label("Speed: ");
-    		Label progress = new Label("Progress: " /*+ droneProgress*/);
+    		Label progress = new Label("Progress: " + droneProgress);
     		Label name = new Label("Name: " + droneName);
     		Label source = new Label("Source: " + droneSource);
-    		Label destination = new Label("Destination: " /*+ droneDestination*/);
+    		Label destination = new Label("Destination: " + droneDestination);
     		Label capacity = new Label("Capacity: " + droneCapacity);
     		Label battery = new Label("Battery: " + droneBattery);
     		Label status = new Label("Status: " + droneStatus);
@@ -291,6 +308,8 @@ public class DronesTab extends ServerWindow {
     			try {
     				Number speed = Integer.parseInt(droneSpeed.getText());
     				Drone newDrone = new Drone(speed);
+    				Random r = new Random();
+    				newDrone.setDestination(suppliers.get(r.nextInt(suppliers.size()+1)).getPostcode());
     				modelViewLists.add(newDrone);
     				getServer().addDrone(speed);
     			} catch(NumberFormatException e) {
@@ -300,18 +319,13 @@ public class DronesTab extends ServerWindow {
     }
     
     protected void removeObject() {
-    	Drone droneToRemove = viewPanel.getSelectionModel().getSelectedItem();
-    	modelViewLists.remove(droneToRemove);
-    	int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
-    	if(actualIndex == 1) {
-    		actualIndex = 0;
-    	}
-    	Drone actualDroneToRemove = getServer().getDrones().get(actualIndex);
-    	if(viewPanel.getSelectionModel().isEmpty()== false) {
-			getServer().removeDrone(actualDroneToRemove);
-		}
 		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
 			popUp("No Object Selected: Please Select an Object");
+		} else {
+    	Drone droneToRemove = viewPanel.getSelectionModel().getSelectedItem();
+    	modelViewLists.remove(droneToRemove);
+    	getServer().getDrones().clear();
+    	getServer().getDrones().addAll(modelViewLists);
 		}
     }
     

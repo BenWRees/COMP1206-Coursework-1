@@ -176,7 +176,7 @@ public class ServerWindow extends Application implements UpdateListener {
 	        serverWindow.getTabs().addAll(postcodes, staff, drone, supplier, ingredient, dish, order, user, map);
 
 	        root.getChildren().add(serverWindow);
-	        startTimer();
+	        //startTimer();
 
 	        mainScene = new Scene(root, 1000, 1200);
 
@@ -315,15 +315,7 @@ public class ServerWindow extends Application implements UpdateListener {
 	 * Refresh all parts of the server application based on receiving new data, calling the server afresh
 	 */
 	public void refreshAll() {
-    	Timeline timeline = new Timeline();
-    	timeline.setCycleCount(Timeline.INDEFINITE);
-    	 timeline.getKeyFrames().add(new KeyFrame(Duration.millis(10000), (actionEvent) -> {
-    		 suppliersTab.suppliersTabContent();
-    		 ingredientsTab.ingredientsTabContent();
-    		 dishesTab.dishesTabContent();
-    		 
-    	 }, null, null));
-    	 timeline.play();
+    	
 	}
 	
 	@Override

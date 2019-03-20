@@ -358,9 +358,11 @@ public class IngredientsTab extends ServerWindow {
                     	if(ingredientRestockAmount.getSelectionModel().isEmpty()) {
                     		ingredientRestockAmount.getSelectionModel().select(getServer().getRestockAmount(viewPanel.getSelectionModel().getSelectedItem()));
                     	}
-                    	if(ingredients.contains(ingredientNameNorm)) {
-                			popUp("Cannot add Duplicate Ingredients");
-                		}
+                    	if(!viewPanel.getSelectionModel().getSelectedItem().getName().equals(ingredientName.getText())) {
+                    		if(ingredients.contains(ingredientNameNorm)) {
+                    			popUp("Cannot add Duplicate Ingredients");
+                    		}
+                    	}
                     	 ingredientObserved.setName(ingredientName.getText());
                     	 ingredientObserved.setUnit(ingredientUnit.getText());
                     	 ingredientObserved.setSupplier(ingredientSupplier.getSelectionModel().getSelectedItem());
@@ -425,19 +427,15 @@ public class IngredientsTab extends ServerWindow {
     //having same issue with server and view panel, discrepancies in what is being removed
     //Should prevent ingredients being removed if they exist in a dish 
     protected void removeObject() throws UnableToDeleteException {
+		
+		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
+			popUp("No Object Selected: Please Select an Object");
+		} else {
     		Ingredient ingredientToRemove = viewPanel.getSelectionModel().getSelectedItem();
     		getIngredientsList().remove(ingredientToRemove);
-    		int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
-    		if(actualIndex == 1) {
-    			actualIndex = 0;
-    		}
-    		Ingredient actualIngredientToRemove = getServer().getIngredients().get(actualIndex);
-    		if(viewPanel.getSelectionModel().isEmpty()== false) {
-    			getServer().removeIngredient(actualIngredientToRemove);
-    		}
-    		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
-    			popUp("No Object Selected: Please Select an Object");
-    		}
+    		getServer().getIngredients().clear();
+    		getServer().getIngredients().addAll(getIngredientsList());
+		}
     }
     
     protected void moveUp() {

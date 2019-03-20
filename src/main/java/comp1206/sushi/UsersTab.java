@@ -277,20 +277,14 @@ public class UsersTab extends ServerWindow {
     
   //need to prevent removal of a postcode if the postcode is being used by a supplier
     protected void removeObject() throws UnableToDeleteException  {
+		if(viewPanel.getSelectionModel().isEmpty()) {
+			popUp("No Object Selected: Please Select an Object");
+		} else {
     		User userToRemove = viewPanel.getSelectionModel().getSelectedItem();
     		modelViewLists.remove(userToRemove);
-    		int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
-    		if(actualIndex == 1) {
-    			actualIndex = 0;
-    		}
-    		Postcode actualPostcodeToRemove = getServer().getPostcodes().get(actualIndex);
-    		if(viewPanel.getSelectionModel().isEmpty()== false) {
-    			getServer().removePostcode(actualPostcodeToRemove);
-    		}
-    		if(viewPanel.getSelectionModel().isEmpty()) {
-    			popUp("No Object Selected: Please Select an Object");
-    		}
-    	//}
+    		getServer().getUsers().clear();
+    		getServer().getUsers().addAll(modelViewLists);
+    	}
     }
     
     protected void moveUp() {

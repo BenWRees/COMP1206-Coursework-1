@@ -294,14 +294,8 @@ public class StaffTab extends ServerWindow {
 		else {
     	Staff staffMemberToRemove = viewPanel.getSelectionModel().getSelectedItem(); 
     	modelViewLists.remove(staffMemberToRemove);
-    	int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
-		if(actualIndex == 1) {
-			actualIndex = 0;
-		}
-		Staff actualStaffMemberToRemove = getServer().getStaff().get(actualIndex);
-    	if(viewPanel.getSelectionModel().isEmpty()== false) {
-			getServer().removeStaff(actualStaffMemberToRemove);
-		}
+    	getServer().getStaff().clear();
+    	getServer().getStaff().addAll(modelViewLists);
 		}
     }
     

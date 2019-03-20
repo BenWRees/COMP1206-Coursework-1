@@ -226,19 +226,14 @@ public class OrdersTab extends ServerWindow {
     }
     
     protected void removeObject() throws UnableToDeleteException {
-    	Order orderToRemove = viewPanel.getSelectionModel().getSelectedItem();
-    	modelViewLists.remove(orderToRemove);
-    	int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
-    	if(actualIndex == 1) {
-    		actualIndex = 0;
-    	}
-    	Order actualOrderToRemove = getServer().getOrders().get(actualIndex);
-			if(viewPanel.getSelectionModel().isEmpty()== false) {
-				getServer().removeOrder(actualOrderToRemove);
-			}
 		if(viewPanel.getSelectionModel().isEmpty()) {
 			popUp("No Object Selected: Please Select an Object");
-		}
+		} else {
+    	Order orderToRemove = viewPanel.getSelectionModel().getSelectedItem();
+    	modelViewLists.remove(orderToRemove);
+    	getServer().getOrders().clear();
+    	getServer().getOrders().addAll(modelViewLists);
+    }
     }
     
     protected void moveUp() {

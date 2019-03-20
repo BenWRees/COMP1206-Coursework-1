@@ -567,9 +567,11 @@ public class DishesTab extends ServerWindow {
                     	if(dishRestockAmount.getSelectionModel().isEmpty()) {
                     		dishRestockAmount.getSelectionModel().select(viewPanel.getSelectionModel().getSelectedItem().getRestockAmount());
                     	}
-                    	if(dishes.contains(dishNameNorm)) {
-                			popUp("Cannot Add Duplicate Dishes");
-                		}
+                    	if(!viewPanel.getSelectionModel().getSelectedItem().getName().equals(dishName.getText())) {
+                    		if(dishes.contains(dishNameNorm)) {
+                    			popUp("Cannot Add Duplicate Dishes");
+                    		}
+                    	}
                     
                     	try {
                     	 dishObserved.setName(dishName.getText());
@@ -637,6 +639,7 @@ public class DishesTab extends ServerWindow {
     				Number restockAmount = this.restockAmount.getSelectionModel().getSelectedItem();
     				Dish newDish = new Dish(name,description,price,restockThreshold,restockAmount);
     				
+    				
     				HashMap<Ingredient,Number> newRecipe = new HashMap<Ingredient,Number>();;
     				for(Recipe currentRecipe : dishRecipe) {
     					newRecipe.put(currentRecipe.getIngredient(), currentRecipe.getQuantity());
@@ -657,18 +660,13 @@ public class DishesTab extends ServerWindow {
     
     
     protected void removeObject() {
+		if(viewPanel.getSelectionModel().isEmpty()) {
+			popUp("No Object Selected: Please Select an Object");
+		} else {
     	Dish dishToRemove = viewPanel.getSelectionModel().getSelectedItem();
     	getDishesList().remove(dishToRemove);
-    	int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
-    	if(actualIndex == 1) {
-    		actualIndex = 0;
-    	}
-    	Dish actualDishToRemove = getServer().getDishes().get(actualIndex);
-    	if(viewPanel.getSelectionModel().isEmpty()== false) {
-			getServer().removeDish(actualDishToRemove);
-		}
-		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
-			//popUp("No Object Selected: Please Select an Object");
+    	getServer().getDishes().clear();
+    	getServer().getDishes().addAll(getDishesList());
 		}
     }
     

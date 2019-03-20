@@ -14,11 +14,13 @@ public class Drone extends Model {
 	
 	private Postcode source;
 	private Postcode destination;
-
+	
 	public Drone(Number speed) {
 		this.setSpeed(speed);
 		this.setCapacity(1);
 		this.setBattery(100);
+		this.setProgress(0);
+		source = new Postcode("SO17 1BJ");
 	}
 
 	public Number getSpeed() {
@@ -27,7 +29,14 @@ public class Drone extends Model {
 
 	
 	public Number getProgress() {
-		return progress;
+		if(Double.valueOf(progress.toString()) > 100) {
+			this.setProgress(100);
+			this.setStatus("Idle");
+			return (Number) progress;
+			
+		} else {
+			return (Number) progress;
+		}
 	}
 	
 	public void setProgress(Number progress) {

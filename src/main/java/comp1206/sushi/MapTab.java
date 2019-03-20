@@ -2,9 +2,12 @@ package comp1206.sushi;
 
 
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Random;
 
 import com.lynden.gmapsfx.GoogleMapView;
 import com.lynden.gmapsfx.MapComponentInitializedListener;
@@ -52,17 +55,17 @@ import javafx.util.Duration;
  */
 public class MapTab extends ServerWindow implements MapComponentInitializedListener {
 	private Tab mapTab;
-	private Canvas canvas;
-	private GraphicsContext gc;
     private GoogleMapView mapView;
     private GoogleMap map;
     private BorderPane mapPane;
-    private ToolBar movementButtons;
     private ArrayList<Marker> markers;
+    private ArrayList<Marker> supplierMarkers;
+    private LatLong currentSupplierPos;
 
     
     private Number RestaurantLat;
     private Number RestaurantLon;
+    private DroneFlying drones;
     
 	
 	public MapTab() {
@@ -110,6 +113,7 @@ public class MapTab extends ServerWindow implements MapComponentInitializedListe
 
 	    map = mapView.createMap(mapOptions);
 
+	    markers = new ArrayList<Marker>();
 	    //Add a marker to the map
 	    MarkerOptions markerOptions = new MarkerOptions();
 
@@ -125,18 +129,12 @@ public class MapTab extends ServerWindow implements MapComponentInitializedListe
 	    marker.setVisible(true);
 	    map.addMarker(marker);
 	    
-	    map.addMarkers(addSupplyMarkers());
+	    //markers.addAll(drones.getDroneMarkers());
+	    //markers.addAll(addSupplyMarkers());
+	   addSupplyMarkers();
+	    //DroneFlying droneFlying = new DroneFlying();
 	    this.refresh();
-	    /*
-	     * add mouse event to show InfoBox when cursor moves over a marker
-	     */
-	    /*
-        	InfoWindowOptions infoWindowOptions = new InfoWindowOptions();
-            infoWindowOptions.content("<h2>Restaurant</h2>"
-                                       + "Postcode: SO17 1BJ<br>");
-            InfoWindow fredWilkeInfoWindow = new InfoWindow(infoWindowOptions);
-            fredWilkeInfoWindow.open(map, marker);
-         */
+	    
 	    
 
 		} catch(Exception e) {
@@ -145,53 +143,27 @@ public class MapTab extends ServerWindow implements MapComponentInitializedListe
 	}
 	
 	
-	
-	public ArrayList<Marker> addSupplyMarkers() {
-		try {
-		markers = new ArrayList<Marker>();
+	public ArrayList<Marker> addSupplyMarkers() throws IOException {
+		
+		supplierMarkers = new ArrayList<Marker>();
 		for(Supplier currentSupplier : getServer().getSuppliers()) {
 			
 			MarkerOptions markerOptions = new MarkerOptions();
 
-			LatLong currentSupplierPos = new LatLong(currentSupplier.getPostcode().getLatLong().get("lat"),currentSupplier.getPostcode().getLatLong().get("lon"));
+			currentSupplierPos = new LatLong(currentSupplier.getPostcode().getLatLong().get("lat"),currentSupplier.getPostcode().getLatLong().get("lon"));
 		    markerOptions.position(currentSupplierPos)
 		                .visible(Boolean.TRUE)
-		                .label(currentSupplier.getName());
+		                .label(currentSupplier.getName().toUpperCase());
 		    			
 		    Marker marker = new Marker(markerOptions);
 		    marker.setVisible(Boolean.TRUE);
-		    markers.add(marker);
+		    map.addMarker(marker);
+		    supplierMarkers.add(marker);
 		    
 		}
 		
-		for(Drone currentDrone: getServer().getDrones()) {
-			
-			MarkerOptions markerOptions = new MarkerOptions();
-
-			LatLong currentSupplierPos = new LatLong(50.93772,-1.4);
-		    markerOptions.position(currentSupplierPos)
-		                .visible(Boolean.TRUE)
-		                .label(currentDrone.getName());
-		    			
-		    Marker marker = new Marker(markerOptions);
-		    marker.setVisible(Boolean.TRUE);
-		    markers.add(marker);
-		    
-		}
-		
-		
-		
-		
-		
-		return markers;
-		} catch(Exception e) {
-			e.getStackTrace();
-		}
-		return null;
-	}
-	
-	//public void 
-	
+		return supplierMarkers;
+	}	
 	
     public Tab getTab() {
     	return mapTab;
@@ -200,29 +172,25 @@ public class MapTab extends ServerWindow implements MapComponentInitializedListe
     public void refresh() {
     	Timeline timeline = new Timeline();
     	timeline.setCycleCount(Timeline.INDEFINITE);
+    	timeline.playFrom(Duration.millis(1000));
     	 timeline.getKeyFrames().add(new KeyFrame(Duration.millis(5000), (actionEvent) -> {
-    	map.removeMarkers(markers);
-    	addSupplyMarkers();
-    	map.addMarkers(addSupplyMarkers());
+    	map.removeMarkers(supplierMarkers);
+    	//supplierMarkers.clear();
+    	try {
+    		//markers.addAll(addSupplyMarkers());
+			addSupplyMarkers();
+		} catch (Exception e) {
+			
+			e.printStackTrace();
+		}
     	 }, null, null));
     	 timeline.play();
     	 
     }
     
-    
-    /*
-    public void startTimer() {
-    	EventHandler<ActionEvent> update = new EventHandler<T>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-           	 mapTabContent();
-            }
-    	};
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0)), update, new KeyValue());
-        timeline.setCycleCount(Animation.INDEFINITE);
-     timeline.play();
+    public GoogleMap getMap() {
+    	return map;
     }
-    */
-     
+    
 
 }

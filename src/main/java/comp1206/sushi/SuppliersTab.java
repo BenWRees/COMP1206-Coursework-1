@@ -343,31 +343,17 @@ public class SuppliersTab extends ServerWindow {
     }
     
     protected void removeObject()  {
-    	//populate with all the 
-    	/*
-    	ArrayList<Supplier> suppliersInIngredient = new ArrayList<Supplier>();
-    	for(Ingredient ingredientsInServer : getServer().getIngredients()) {
-    		suppliersInIngredient.add(ingredientsInServer.getSupplier());
-    	}
-    	if(suppliersInIngredient.contains(viewPanel.getSelectionModel().getSelectedItem().getPostcode()) ) {
-    		popUp("Cannot delete a Supplier being used by a Ingredient");
-    	} else {
-    	*/
+		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
+			popUp("No Object Selected: Please Select an Object");
+		} else {
     		Supplier supplierToRemove = viewPanel.getSelectionModel().getSelectedItem();
     		getSuppliersList().remove(supplierToRemove);
-    		int actualIndex= viewPanel.getSelectionModel().getSelectedIndex() + 1;
-    		if(actualIndex == 1) {
-    			actualIndex = 0;
-    		}
-    		Supplier actualSupplierToRemove = getServer().getSuppliers().get(actualIndex);
-    		if(viewPanel.getSelectionModel().isEmpty()== false) {
-    			getServer().removeSupplier(actualSupplierToRemove);
-			
-    		}	
+    		getServer().getSuppliers().clear();
+    		getServer().getSuppliers().addAll(getSuppliersList());
     		if(viewPanel.getSelectionModel().getSelectedItem() == null) {
     			popUp("No Object Selected: Please Select an Object");
 			}
-    	//}
+    	}
     		
     	
     }

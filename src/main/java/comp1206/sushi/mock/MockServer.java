@@ -322,12 +322,7 @@ public class MockServer implements ServerInterface {
 	
 	@Override
 	public String getDroneStatus(Drone drone) {
-		
-		Random rand = new Random();
-		if(drone.getStatus().equals("Flying")) {
-			return "Flying";
-		}
-		else if(rand.nextBoolean()) {
+		if(Double.valueOf(drone.getProgress().toString()) >= 100) {
 			return "Idle";
 		} else {
 			return "Flying";
